@@ -21,7 +21,6 @@
 
 //   const existingData = location.state?.formData;
 
-//   // ✅ Initial form state with photoPreview logic
 //   const [formValues, setFormValues] = useState(
 //     existingData
 //       ? {
@@ -32,7 +31,7 @@
 //           areas: existingData.areas?.length
 //             ? existingData.areas.map((area) => ({
 //                 ...area,
-//                 photo: null, // can't store file
+//                 photo: null,
 //                 photoPreview: area.photoPreview || area.photoUrl || null,
 //               }))
 //             : [
@@ -64,26 +63,23 @@
 //         }
 //   );
 
-//   // ✅ Validation error state
 //   const [errors, setErrors] = useState({
 //     name: '',
 //     mobile: '',
 //     address: '',
 //   });
 
-//   // ✅ Save draft to sessionStorage
 //   useEffect(() => {
 //     const serializable = {
 //       ...formValues,
 //       areas: formValues.areas.map((area) => ({
 //         ...area,
-//         photo: null, // exclude file
+//         photo: null,
 //       })),
 //     };
 //     sessionStorage.setItem('userFormDraft', JSON.stringify(serializable));
 //   }, [formValues]);
 
-//   // ✅ Validate before submit
 //   const validateForm = () => {
 //     let isValid = true;
 //     const newErrors = { name: '', mobile: '', address: '' };
@@ -157,8 +153,6 @@
 //   const handleSubmit = () => {
 //     if (!validateForm()) return;
 
-//     console.log('Submitting form:', formValues);
-
 //     const existingList = JSON.parse(sessionStorage.getItem('userForms') || '[]');
 
 //     const index = existingList.findIndex(
@@ -185,7 +179,8 @@
 //       </Typography>
 
 //       <Stack spacing={3}>
-//         <Stack direction="row" spacing={2}>
+//         {/* ✅ Make this responsive */}
+//         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
 //           <TextField
 //             label="Customer Name"
 //             value={formValues.name}
@@ -220,6 +215,7 @@
 //           helperText={errors.address}
 //         />
 
+//         {/* ✅ Mobile-friendly date input with shrink */}
 //         <TextField
 //           label="Measurement Date"
 //           type="date"
@@ -326,7 +322,7 @@
 //                   rows={2}
 //                 />
 //               </Grid>
-//             </Grid> 
+//             </Grid>
 //           </Box>
 //         ))}
 
@@ -350,7 +346,7 @@
 //     </Container>
 //   );
 // }
-import { useState, useEffect } from 'react';
+import { useRef ,useState, useEffect  } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 import {
@@ -358,6 +354,7 @@ import {
   Grid,
   Stack,
   Button,
+  Dialog,
   Container,
   TextField,
   Typography,
@@ -370,7 +367,6 @@ export default function UserFormPage() {
   const location = useLocation();
 
   const today = new Date().toISOString().split('T')[0];
-
   const existingData = location.state?.formData;
 
   const [formValues, setFormValues] = useState(
@@ -421,6 +417,12 @@ export default function UserFormPage() {
     address: '',
   });
 
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const [cameraIndex, setCameraIndex] = useState(null);
+  const videoRef = useRef();
+  const canvasRef = useRef();
+  let stream = null;
+
   useEffect(() => {
     const serializable = {
       ...formValues,
@@ -461,18 +463,15 @@ export default function UserFormPage() {
 
   const handleChange = (index, field, value) => {
     const areas = [...formValues.areas];
-
     if (field === 'photo') {
       if (areas[index].photoPreview) {
         URL.revokeObjectURL(areas[index].photoPreview);
       }
-
       areas[index][field] = value;
       areas[index].photoPreview = URL.createObjectURL(value);
     } else {
       areas[index][field] = value;
     }
-
     setFormValues({ ...formValues, areas });
   };
 
@@ -506,7 +505,6 @@ export default function UserFormPage() {
     if (!validateForm()) return;
 
     const existingList = JSON.parse(sessionStorage.getItem('userForms') || '[]');
-
     const index = existingList.findIndex(
       (item) =>
         item.name === formValues.name && item.mobile === formValues.mobile
@@ -520,8 +518,37 @@ export default function UserFormPage() {
 
     sessionStorage.setItem('userForms', JSON.stringify(existingList));
     sessionStorage.removeItem('userFormDraft');
-
     navigate('/user');
+  };
+
+  const openCamera = async (index) => {
+    setCameraIndex(index);
+    setCameraOpen(true);
+    stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    videoRef.current.srcObject = stream;
+  };
+
+  const closeCamera = () => {
+    if (stream) {
+      stream.getTracks().forEach((track) => track.stop());
+    }
+    setCameraOpen(false);
+  };
+
+  const capturePhoto = () => {
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    canvas.toBlob((blob) => {
+      if (blob) {
+        const file = new File([blob], 'captured.jpg', { type: 'image/jpeg' });
+        handleChange(cameraIndex, 'photo', file);
+      }
+    }, 'image/jpeg');
+    closeCamera();
   };
 
   return (
@@ -531,7 +558,6 @@ export default function UserFormPage() {
       </Typography>
 
       <Stack spacing={3}>
-        {/* ✅ Make this responsive */}
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
           <TextField
             label="Customer Name"
@@ -567,7 +593,6 @@ export default function UserFormPage() {
           helperText={errors.address}
         />
 
-        {/* ✅ Mobile-friendly date input with shrink */}
         <TextField
           label="Measurement Date"
           type="date"
@@ -593,7 +618,6 @@ export default function UserFormPage() {
                 variant="outlined"
                 color="error"
                 onClick={() => handleRemoveRow(index)}
-                startIcon={<Iconify icon="eva:trash-2-outline" />}
                 disabled={formValues.areas.length === 1}
               >
                 Delete
@@ -633,30 +657,33 @@ export default function UserFormPage() {
               </Grid>
 
               <Grid item xs={12}>
-                <Button variant="outlined" component="label">
-                  Upload Photo
-                  <input
-                    hidden
-                    accept="image/*"
-                    type="file"
-                    onChange={(e) => {
-                      if (e.target.files[0]) {
-                        handleChange(index, 'photo', e.target.files[0]);
-                      }
-                    }}
-                  />
-                </Button>
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                  <Button variant="outlined" component="label">
+                    Upload Photo
+                    <input
+                      hidden
+                      accept="image/*"
+                      type="file"
+                      capture="environment"
+                      onChange={(e) => {
+                        if (e.target.files[0]) {
+                          handleChange(index, 'photo', e.target.files[0]);
+                        }
+                      }}
+                    />
+                  </Button>
+
+                  <Button variant="outlined" onClick={() => openCamera(index)}>
+                    Capture Photo
+                  </Button>
+                </Stack>
 
                 {area.photoPreview && (
                   <Box mt={2}>
                     <img
                       src={area.photoPreview}
                       alt={`Preview ${index + 1}`}
-                      style={{
-                        width: '100%',
-                        maxWidth: '200px',
-                        borderRadius: 8,
-                      }}
+                      style={{ width: '100%', maxWidth: '200px', borderRadius: 8 }}
                     />
                   </Box>
                 )}
@@ -695,6 +722,27 @@ export default function UserFormPage() {
           </Button>
         </Stack>
       </Stack>
+
+      {/* Camera Modal */}
+      <Dialog open={cameraOpen} onClose={closeCamera} maxWidth="md">
+        <Box p={2}>
+      <video
+  ref={videoRef}
+  autoPlay
+  style={{ width: '100%' }}
+  aria-hidden="true"
+/>
+          <canvas ref={canvasRef} style={{ display: 'none' }} />
+          <Stack direction="row" spacing={2} justifyContent="center" mt={2}>
+            <Button variant="contained" onClick={capturePhoto}>
+              Capture
+            </Button>
+            <Button variant="outlined" onClick={closeCamera}>
+              Close
+            </Button>
+          </Stack>
+        </Box>
+      </Dialog>
     </Container>
   );
 }
