@@ -1,8 +1,8 @@
 {
-  "name": "@minimal/material-kit-react",
-  "author": "minimals.cc",
+  "name": "Digiflex",
+  "author": "Khush Patel",
   "licence": "MIT",
-  "version": "1.8.0",
+  "version": "1",
   "private": false,
   "scripts": {
     "dev": "vite",
