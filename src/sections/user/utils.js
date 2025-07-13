@@ -1,3 +1,5 @@
+import dayjs from 'dayjs'; // ✅ Make sure you have dayjs installed
+
 export const visuallyHidden = {
   border: 0,
   margin: -1,
@@ -35,7 +37,8 @@ export function getComparator(order, orderBy) {
     : (a, b) => -descendingComparator(a, b, orderBy);
 }
 
-export function applyFilter({ inputData, comparator, filterName }) {
+export function applyFilter({ inputData, comparator, filterName, filterDate }) {
+  // Sort rows
   const stabilizedThis = inputData.map((el, index) => [el, index]);
 
   stabilizedThis.sort((a, b) => {
@@ -44,15 +47,26 @@ export function applyFilter({ inputData, comparator, filterName }) {
     return a[1] - b[1];
   });
 
-  inputData = stabilizedThis.map((el) => el[0]);
+  let filtered = stabilizedThis.map((el) => el[0]);
 
+  // ✅ Filter by name/mobile/date string search
   if (filterName) {
-    inputData = inputData.filter(
-      (user) => user.name.toLowerCase().indexOf(filterName.toLowerCase()) !== -1 ||
-                user.mobile.toLowerCase().indexOf(filterName.toLowerCase()) !== -1  ||
-                user.measurementDate.toLowerCase().indexOf(filterName.toLowerCase()) !== -1
+    filtered = filtered.filter(
+      (user) =>
+        user.name?.toLowerCase().includes(filterName.toLowerCase()) ||
+        user.mobile?.toLowerCase().includes(filterName.toLowerCase()) ||
+        user.measurementDate?.toLowerCase().includes(filterName.toLowerCase())
     );
   }
 
-  return inputData;
+  // ✅ Filter by exact date
+  if (filterDate) {
+    filtered = filtered.filter((user) => {
+      const userDate = dayjs(user.measurementDate).format('YYYY-MM-DD');
+      const selectedDate = dayjs(filterDate).format('YYYY-MM-DD');
+      return userDate === selectedDate;
+    });
+  }
+
+  return filtered;
 }

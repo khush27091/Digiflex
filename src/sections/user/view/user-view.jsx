@@ -30,6 +30,7 @@ export default function UserPage() {
   const [orderBy, setOrderBy] = useState('name');
   const [filterName, setFilterName] = useState('');
   const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [filterDate, setFilterDate] = useState(null);
 
   const navigate = useNavigate();
 
@@ -40,7 +41,7 @@ export default function UserPage() {
   // ✅ Each row keeps the full form object
   const rows = savedData.map((item, index) => ({
     id: index + 1,
-    ...item, // spread the full object: name, mobile, address, measurementDate, areas, etc.
+    ...item,
   }));
 
   const handleSort = (event, id) => {
@@ -92,13 +93,17 @@ export default function UserPage() {
     setFilterName(event.target.value);
   };
 
+  const handleFilterByDate = (newDate) => {
+  setPage(0);
+  setFilterDate(newDate);
+};
+
+
+
   const handleDelete = (name) => {
     const forms = savedForms ? JSON.parse(savedForms) : [];
-
     const updatedForms = forms.filter((form) => form.name !== name);
-
     sessionStorage.setItem('userForms', JSON.stringify(updatedForms));
-
     window.location.reload();
   };
 
@@ -106,9 +111,13 @@ export default function UserPage() {
     inputData: rows,
     comparator: getComparator(order, orderBy),
     filterName,
+    filterDate, // ✅ Pass it!
+
   });
 
-  const notFound = !dataFiltered.length && !!filterName;
+  // ✅ NEW: Show no data when filtered result empty OR rows empty
+const notFound = (!dataFiltered.length && (!!filterName || !!filterDate)) || rows.length === 0;
+
 
   return (
     <Container>
@@ -129,7 +138,9 @@ export default function UserPage() {
         <UserTableToolbar
           numSelected={selected.length}
           filterName={filterName}
+          filterDate={filterDate}
           onFilterName={handleFilterByName}
+           onFilterDate={handleFilterByDate}
         />
 
         <Scrollbar>
@@ -155,7 +166,7 @@ export default function UserPage() {
                   .map((row) => (
                     <UserTableRow
                       key={row.id}
-                      row={row} // ✅ Send the whole object!
+                      row={row}
                       selected={selected.indexOf(row.name) !== -1}
                       handleClick={(event) => handleClick(event, row.name)}
                       handleDelete={handleDelete}

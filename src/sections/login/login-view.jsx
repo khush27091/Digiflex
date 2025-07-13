@@ -29,7 +29,34 @@ export default function LoginView() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+
+  const validateEmail = (value) => {
+    if (!value) return 'Email is required';
+    // Basic email regex
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(value)) return 'Invalid email format';
+    return '';
+  };
+
+  const validatePassword = (value) => {
+    if (!value) return 'Password is required';
+    if (value.length < 6) return 'Password must be at least 6 characters';
+    return '';
+  };
+
   const handleClick = () => {
+    const emailErr = validateEmail(email);
+    const passwordErr = validatePassword(password);
+
+    setEmailError(emailErr);
+    setPasswordError(passwordErr);
+
+    if (emailErr || passwordErr) {
+      return; // Don’t continue if validation fails
+    }
+
     setLoading(true);
     setError('');
 
@@ -59,6 +86,8 @@ export default function LoginView() {
           label="Email address"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          error={Boolean(emailError)}
+          helperText={emailError}
         />
 
         <TextField
@@ -67,6 +96,8 @@ export default function LoginView() {
           type={showPassword ? 'text' : 'password'}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          error={Boolean(passwordError)}
+          helperText={passwordError}
           InputProps={{
             endAdornment: (
               <InputAdornment position="end">
@@ -104,7 +135,7 @@ export default function LoginView() {
     <Box
       sx={{
         ...bgGradient({
-          color: alpha(theme.palette.background.default,0.1),
+          color: alpha(theme.palette.background.default, 0.1),
           imgUrl: '/assets/background/overlay_3.jpg',
         }),
         height: 1,

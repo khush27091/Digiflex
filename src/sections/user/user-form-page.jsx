@@ -1,4 +1,4 @@
-// import { useState, useEffect } from 'react';
+// import { useRef, useState, useEffect } from 'react';
 // import { useNavigate, useLocation } from 'react-router-dom';
 
 // import {
@@ -6,6 +6,7 @@
 //   Grid,
 //   Stack,
 //   Button,
+//   Dialog,
 //   Container,
 //   TextField,
 //   Typography,
@@ -18,7 +19,6 @@
 //   const location = useLocation();
 
 //   const today = new Date().toISOString().split('T')[0];
-
 //   const existingData = location.state?.formData;
 
 //   const [formValues, setFormValues] = useState(
@@ -69,6 +69,12 @@
 //     address: '',
 //   });
 
+//   const [cameraOpen, setCameraOpen] = useState(false);
+//   const [cameraIndex, setCameraIndex] = useState(null);
+//   const videoRef = useRef();
+//   const canvasRef = useRef();
+//   const [stream, setStream] = useState(null);
+
 //   useEffect(() => {
 //     const serializable = {
 //       ...formValues,
@@ -109,18 +115,15 @@
 
 //   const handleChange = (index, field, value) => {
 //     const areas = [...formValues.areas];
-
 //     if (field === 'photo') {
 //       if (areas[index].photoPreview) {
 //         URL.revokeObjectURL(areas[index].photoPreview);
 //       }
-
 //       areas[index][field] = value;
 //       areas[index].photoPreview = URL.createObjectURL(value);
 //     } else {
 //       areas[index][field] = value;
 //     }
-
 //     setFormValues({ ...formValues, areas });
 //   };
 
@@ -154,7 +157,6 @@
 //     if (!validateForm()) return;
 
 //     const existingList = JSON.parse(sessionStorage.getItem('userForms') || '[]');
-
 //     const index = existingList.findIndex(
 //       (item) =>
 //         item.name === formValues.name && item.mobile === formValues.mobile
@@ -168,8 +170,51 @@
 
 //     sessionStorage.setItem('userForms', JSON.stringify(existingList));
 //     sessionStorage.removeItem('userFormDraft');
-
 //     navigate('/user');
+//   };
+
+//   const openCamera = async (index) => {
+//     setCameraIndex(index);
+//     setCameraOpen(true);
+//     try {
+//       const rearStream = await navigator.mediaDevices.getUserMedia({
+//         video: { facingMode: { exact: 'environment' } },
+//       });
+//       videoRef.current.srcObject = rearStream;
+//       setStream(rearStream);
+//     } catch (err) {
+//       console.warn('Rear camera not found, using default:', err);
+//       // fallback to default camera
+//       const defaultStream = await navigator.mediaDevices.getUserMedia({
+//         video: true,
+//       });
+//       videoRef.current.srcObject = defaultStream;
+//       setStream(defaultStream);
+//     }
+//   };
+
+//   const closeCamera = () => {
+//     if (stream) {
+//       stream.getTracks().forEach((track) => track.stop());
+//     }
+//     setCameraOpen(false);
+//     setStream(null);
+//   };
+
+//   const capturePhoto = () => {
+//     const video = videoRef.current;
+//     const canvas = canvasRef.current;
+//     canvas.width = video.videoWidth;
+//     canvas.height = video.videoHeight;
+//     const ctx = canvas.getContext('2d');
+//     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+//     canvas.toBlob((blob) => {
+//       if (blob) {
+//         const file = new File([blob], 'captured.jpg', { type: 'image/jpeg' });
+//         handleChange(cameraIndex, 'photo', file);
+//       }
+//     }, 'image/jpeg');
+//     closeCamera();
 //   };
 
 //   return (
@@ -179,7 +224,6 @@
 //       </Typography>
 
 //       <Stack spacing={3}>
-//         {/* ✅ Make this responsive */}
 //         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
 //           <TextField
 //             label="Customer Name"
@@ -215,7 +259,6 @@
 //           helperText={errors.address}
 //         />
 
-//         {/* ✅ Mobile-friendly date input with shrink */}
 //         <TextField
 //           label="Measurement Date"
 //           type="date"
@@ -241,7 +284,6 @@
 //                 variant="outlined"
 //                 color="error"
 //                 onClick={() => handleRemoveRow(index)}
-//                 startIcon={<Iconify icon="eva:trash-2-outline" />}
 //                 disabled={formValues.areas.length === 1}
 //               >
 //                 Delete
@@ -281,19 +323,26 @@
 //               </Grid>
 
 //               <Grid item xs={12}>
-//                 <Button variant="outlined" component="label">
-//                   Upload Photo
-//                   <input
-//                     hidden
-//                     accept="image/*"
-//                     type="file"
-//                     onChange={(e) => {
-//                       if (e.target.files[0]) {
-//                         handleChange(index, 'photo', e.target.files[0]);
-//                       }
-//                     }}
-//                   />
-//                 </Button>
+//                 <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+//                   <Button variant="outlined" component="label">
+//                     Upload Photo
+//                     <input
+//                       hidden
+//                       accept="image/*"
+//                       type="file"
+//                       capture="environment"
+//                       onChange={(e) => {
+//                         if (e.target.files[0]) {
+//                           handleChange(index, 'photo', e.target.files[0]);
+//                         }
+//                       }}
+//                     />
+//                   </Button>
+
+//                   <Button variant="outlined" onClick={() => openCamera(index)}>
+//                     Capture Photo
+//                   </Button>
+//                 </Stack>
 
 //                 {area.photoPreview && (
 //                   <Box mt={2}>
@@ -343,6 +392,27 @@
 //           </Button>
 //         </Stack>
 //       </Stack>
+
+//       {/* Camera Modal */}
+//       <Dialog open={cameraOpen} onClose={closeCamera} maxWidth="md">
+//         <Box p={2}>
+//           <video
+//             ref={videoRef}
+//             autoPlay
+//             style={{ width: '100%' }}
+//             aria-hidden="true"
+//           />
+//           <canvas ref={canvasRef} style={{ display: 'none' }} />
+//           <Stack direction="row" spacing={2} justifyContent="center" mt={2}>
+//             <Button variant="contained" onClick={capturePhoto}>
+//               Capture
+//             </Button>
+//             <Button variant="outlined" onClick={closeCamera}>
+//               Close
+//             </Button>
+//           </Stack>
+//         </Box>
+//       </Dialog>
 //     </Container>
 //   );
 // }
@@ -415,6 +485,7 @@ export default function UserFormPage() {
     name: '',
     mobile: '',
     address: '',
+    areas: [],
   });
 
   const [cameraOpen, setCameraOpen] = useState(false);
@@ -436,7 +507,7 @@ export default function UserFormPage() {
 
   const validateForm = () => {
     let isValid = true;
-    const newErrors = { name: '', mobile: '', address: '' };
+    const newErrors = { name: '', mobile: '', address: '', areas: [] };
 
     if (!formValues.name.trim()) {
       newErrors.name = 'Name is required';
@@ -457,6 +528,23 @@ export default function UserFormPage() {
       isValid = false;
     }
 
+    newErrors.areas = formValues.areas.map((area) => {
+      const areaErrors = {};
+      if (!area.areaName.trim()) {
+        areaErrors.areaName = 'Area Name is required';
+        isValid = false;
+      }
+      if (!area.height.trim()) {
+        areaErrors.height = 'Height is required';
+        isValid = false;
+      }
+      if (!area.width.trim()) {
+        areaErrors.width = 'Width is required';
+        isValid = false;
+      }
+      return areaErrors;
+    });
+
     setErrors(newErrors);
     return isValid;
   };
@@ -473,6 +561,15 @@ export default function UserFormPage() {
       areas[index][field] = value;
     }
     setFormValues({ ...formValues, areas });
+
+    if (errors.areas?.[index]?.[field]) {
+      const updatedAreaErrors = [...errors.areas];
+      updatedAreaErrors[index] = {
+        ...updatedAreaErrors[index],
+        [field]: '',
+      };
+      setErrors({ ...errors, areas: updatedAreaErrors });
+    }
   };
 
   const handleAddRow = () => {
@@ -490,15 +587,22 @@ export default function UserFormPage() {
         },
       ],
     });
+    setErrors({
+      ...errors,
+      areas: [...errors.areas, {}],
+    });
   };
 
   const handleRemoveRow = (index) => {
     const areas = [...formValues.areas];
+    const areaErrors = [...errors.areas];
     if (areas[index].photoPreview) {
       URL.revokeObjectURL(areas[index].photoPreview);
     }
     areas.splice(index, 1);
+    areaErrors.splice(index, 1);
     setFormValues({ ...formValues, areas });
+    setErrors({ ...errors, areas: areaErrors });
   };
 
   const handleSubmit = () => {
@@ -531,8 +635,6 @@ export default function UserFormPage() {
       videoRef.current.srcObject = rearStream;
       setStream(rearStream);
     } catch (err) {
-      console.warn('Rear camera not found, using default:', err);
-      // fallback to default camera
       const defaultStream = await navigator.mediaDevices.getUserMedia({
         video: true,
       });
@@ -576,9 +678,10 @@ export default function UserFormPage() {
           <TextField
             label="Customer Name"
             value={formValues.name}
-            onChange={(e) =>
-              setFormValues({ ...formValues, name: e.target.value })
-            }
+            onChange={(e) => {
+              setFormValues({ ...formValues, name: e.target.value });
+              if (errors.name) setErrors({ ...errors, name: '' });
+            }}
             fullWidth
             error={!!errors.name}
             helperText={errors.name}
@@ -587,9 +690,10 @@ export default function UserFormPage() {
           <TextField
             label="Customer Mobile"
             value={formValues.mobile}
-            onChange={(e) =>
-              setFormValues({ ...formValues, mobile: e.target.value })
-            }
+            onChange={(e) => {
+              setFormValues({ ...formValues, mobile: e.target.value });
+              if (errors.mobile) setErrors({ ...errors, mobile: '' });
+            }}
             fullWidth
             error={!!errors.mobile}
             helperText={errors.mobile}
@@ -599,9 +703,10 @@ export default function UserFormPage() {
         <TextField
           label="Customer Address"
           value={formValues.address}
-          onChange={(e) =>
-            setFormValues({ ...formValues, address: e.target.value })
-          }
+          onChange={(e) => {
+            setFormValues({ ...formValues, address: e.target.value });
+            if (errors.address) setErrors({ ...errors, address: '' });
+          }}
           fullWidth
           error={!!errors.address}
           helperText={errors.address}
@@ -647,6 +752,8 @@ export default function UserFormPage() {
                     handleChange(index, 'areaName', e.target.value)
                   }
                   fullWidth
+                  error={!!errors.areas[index]?.areaName}
+                  helperText={errors.areas[index]?.areaName}
                 />
               </Grid>
               <Grid item xs={12} md={4}>
@@ -657,6 +764,8 @@ export default function UserFormPage() {
                     handleChange(index, 'height', e.target.value)
                   }
                   fullWidth
+                  error={!!errors.areas[index]?.height}
+                  helperText={errors.areas[index]?.height}
                 />
               </Grid>
               <Grid item xs={12} md={4}>
@@ -667,6 +776,8 @@ export default function UserFormPage() {
                     handleChange(index, 'width', e.target.value)
                   }
                   fullWidth
+                  error={!!errors.areas[index]?.width}
+                  helperText={errors.areas[index]?.width}
                 />
               </Grid>
 
@@ -741,7 +852,6 @@ export default function UserFormPage() {
         </Stack>
       </Stack>
 
-      {/* Camera Modal */}
       <Dialog open={cameraOpen} onClose={closeCamera} maxWidth="md">
         <Box p={2}>
           <video
