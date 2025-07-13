@@ -346,7 +346,7 @@
 //     </Container>
 //   );
 // }
-import { useRef ,useState, useEffect  } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 import {
@@ -421,7 +421,7 @@ export default function UserFormPage() {
   const [cameraIndex, setCameraIndex] = useState(null);
   const videoRef = useRef();
   const canvasRef = useRef();
-  let stream = null;
+  const [stream, setStream] = useState(null);
 
   useEffect(() => {
     const serializable = {
@@ -524,8 +524,21 @@ export default function UserFormPage() {
   const openCamera = async (index) => {
     setCameraIndex(index);
     setCameraOpen(true);
-    stream = await navigator.mediaDevices.getUserMedia({ video: true });
-    videoRef.current.srcObject = stream;
+    try {
+      const rearStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { exact: 'environment' } },
+      });
+      videoRef.current.srcObject = rearStream;
+      setStream(rearStream);
+    } catch (err) {
+      console.warn('Rear camera not found, using default:', err);
+      // fallback to default camera
+      const defaultStream = await navigator.mediaDevices.getUserMedia({
+        video: true,
+      });
+      videoRef.current.srcObject = defaultStream;
+      setStream(defaultStream);
+    }
   };
 
   const closeCamera = () => {
@@ -533,6 +546,7 @@ export default function UserFormPage() {
       stream.getTracks().forEach((track) => track.stop());
     }
     setCameraOpen(false);
+    setStream(null);
   };
 
   const capturePhoto = () => {
@@ -683,7 +697,11 @@ export default function UserFormPage() {
                     <img
                       src={area.photoPreview}
                       alt={`Preview ${index + 1}`}
-                      style={{ width: '100%', maxWidth: '200px', borderRadius: 8 }}
+                      style={{
+                        width: '100%',
+                        maxWidth: '200px',
+                        borderRadius: 8,
+                      }}
                     />
                   </Box>
                 )}
@@ -726,12 +744,12 @@ export default function UserFormPage() {
       {/* Camera Modal */}
       <Dialog open={cameraOpen} onClose={closeCamera} maxWidth="md">
         <Box p={2}>
-      <video
-  ref={videoRef}
-  autoPlay
-  style={{ width: '100%' }}
-  aria-hidden="true"
-/>
+          <video
+            ref={videoRef}
+            autoPlay
+            style={{ width: '100%' }}
+            aria-hidden="true"
+          />
           <canvas ref={canvasRef} style={{ display: 'none' }} />
           <Stack direction="row" spacing={2} justifyContent="center" mt={2}>
             <Button variant="contained" onClick={capturePhoto}>
