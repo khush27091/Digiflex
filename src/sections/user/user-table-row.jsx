@@ -26,6 +26,8 @@ export default function UserTableRow({
   const [openMenu, setOpenMenu] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
 
+  console.log('UserTableRow', row);
+
   const navigate = useNavigate();
 
   const handleOpenMenu = (event) => {

@@ -41,10 +41,10 @@ export default function AccountPopover() {
     setOpen(event.currentTarget);
   };
 
-  const handleClose = () => {
-    sessionStorage.removeItem('accessToken');
-  router.push('/', { replace: true }); // Goes back to login view
-  };
+const handleClose = () => {
+  sessionStorage.clear(); // ✅ Clears ALL sessionStorage data
+  router.push('/', { replace: true }); // ✅ Redirect to login
+};
 
   return (
     <>
