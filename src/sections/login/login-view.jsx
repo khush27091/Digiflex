@@ -40,6 +40,8 @@ export default function LoginView() {
     return '';
   };
 
+  
+
   const validatePassword = (value) => {
     if (!value) return 'Password is required';
     if (value.length < 6) return 'Password must be at least 6 characters';
@@ -81,33 +83,47 @@ export default function LoginView() {
   const renderForm = (
     <>
       <Stack spacing={3}>
-        <TextField
-          name="email"
-          label="Email address"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          error={Boolean(emailError)}
-          helperText={emailError}
-        />
+       <TextField
+  name="email"
+  label="Email address"
+  value={email}
+  onChange={(e) => {
+    setEmail(e.target.value);
+    setError(''); // Clear general error on typing
+    setEmailError(''); // Optional: Clear field-specific error as well
+  }}
+  error={Boolean(emailError)}
+  helperText={emailError}
+/>
 
-        <TextField
-          name="password"
-          label="Password"
-          type={showPassword ? 'text' : 'password'}
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          error={Boolean(passwordError)}
-          helperText={passwordError}
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position="end">
-                <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
-                  <Iconify icon={showPassword ? 'eva:eye-fill' : 'eva:eye-off-fill'} />
-                </IconButton>
-              </InputAdornment>
-            ),
-          }}
-        />
+<TextField
+  name="password"
+  label="Password"
+  type={showPassword ? 'text' : 'password'}
+  value={password}
+  onChange={(e) => {
+    setPassword(e.target.value);
+    setError('');
+    setPasswordError('');
+  }}
+  onKeyDown={(e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleClick();
+    }
+  }}
+  error={Boolean(passwordError)}
+  helperText={passwordError}
+  InputProps={{
+    endAdornment: (
+      <InputAdornment position="end">
+        <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
+          <Iconify icon={showPassword ? 'eva:eye-fill' : 'eva:eye-off-fill'} />
+        </IconButton>
+      </InputAdornment>
+    ),
+  }}
+/>
       </Stack>
 
       {error && (

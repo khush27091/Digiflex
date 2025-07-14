@@ -18,62 +18,64 @@ export default function UserTableToolbar({
   onFilterDate,
 }) {
   return (
-    <Toolbar
+<Toolbar
+  sx={{
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'stretch',
+    gap: 2,
+    px: 3,
+    py: 2,
+    ...(numSelected > 0 && {
+      color: 'primary.main',
+      bgcolor: 'primary.lighter',
+    }),
+  }}
+>
+  <Stack
+    direction={{ xs: 'column', sm: 'row' }}
+    spacing={2}
+    sx={{ width: '100%' }}
+  >
+    <OutlinedInput
+      value={filterName}
+      onChange={onFilterName}
+      placeholder="Search Measurements by Name and phone number..."
+      startAdornment={
+        <InputAdornment position="start">
+          <Iconify
+            icon="eva:search-fill"
+            sx={{ color: 'text.disabled', width: 20, height: 20 }}
+          />
+        </InputAdornment>
+      }
+      fullWidth
       sx={{
-        height: 96,
-        display: 'flex',
-        justifyContent: 'space-between',
-        p: (theme) => theme.spacing(0, 1, 0, 3),
-        ...(numSelected > 0 && {
-          color: 'primary.main',
-          bgcolor: 'primary.lighter',
-        }),
+        height: 56,
       }}
-    >
-      <Stack
-        direction={{ xs: 'column', sm: 'row' }}
-        spacing={2}
-        sx={{ width: 1, alignItems: 'center' }}
-      >
-        {/* ✅ SEARCH INPUT */}
-        <OutlinedInput
-          value={filterName}
-          onChange={onFilterName}
-          placeholder="Search Measurements by Name and phone number..."
-          startAdornment={
-            <InputAdornment position="start">
-              <Iconify
-                icon="eva:search-fill"
-                sx={{ color: 'text.disabled', width: 20, height: 20 }}
-              />
-            </InputAdornment>
-          }
-          sx={{
-            width: { xs: 1, sm: '600' },
-            height: 56, // Matches MUI default for size=medium
-          }}
-        />
+    />
 
-        {/* ✅ DATE PICKER */}
-        <DatePicker
-          label="Search by Date"
-          value={filterDate}
-          onChange={onFilterDate}
-          slotProps={{
-            textField: {
-              variant: 'outlined',
-              size: 'medium', // Match default size for OutlinedInput
-              sx: {
-                height: 56,
-                '& .MuiInputBase-root': {
-                  height: '100%',
-                },
-              },
+    <DatePicker
+      label="Search by Date"
+      value={filterDate}
+      onChange={onFilterDate}
+      slotProps={{
+        textField: {
+          fullWidth: true,
+          variant: 'outlined',
+          size: 'medium',
+          sx: {
+            height: 56,
+            '& .MuiInputBase-root': {
+              height: '100%',
             },
-          }}
-        />
-      </Stack>
-    </Toolbar>
+          },
+        },
+      }}
+    />
+  </Stack>
+</Toolbar>
+
   );
 }
 
