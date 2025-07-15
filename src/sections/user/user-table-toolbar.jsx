@@ -4,6 +4,8 @@ import Stack from '@mui/material/Stack';
 import Toolbar from '@mui/material/Toolbar';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import InputAdornment from '@mui/material/InputAdornment';
+import IconButton from '@mui/material/IconButton';
+import Button from '@mui/material/Button';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 import Iconify from 'src/components/iconify';
@@ -17,6 +19,13 @@ export default function UserTableToolbar({
   filterEndDate,
   onFilterEndDate,
 }) {
+  // ✅ Handles clearing everything at once
+  const handleClearAll = () => {
+    onFilterName({ target: { value: '' } });
+    onFilterStartDate(null);
+    onFilterEndDate(null);
+  };
+
   return (
     <Toolbar
       sx={{
@@ -62,13 +71,9 @@ export default function UserTableToolbar({
               fullWidth: true,
               variant: 'outlined',
               size: 'medium',
-              sx: {
-                height: 56,
-                '& .MuiInputBase-root': {
-                  height: '100%',
-                },
-              },
+              sx: { height: 56, '& .MuiInputBase-root': { height: '100%' } },
             },
+            actionBar: { actions: ['clear'] },
           }}
         />
 
@@ -81,15 +86,27 @@ export default function UserTableToolbar({
               fullWidth: true,
               variant: 'outlined',
               size: 'medium',
-              sx: {
-                height: 56,
-                '& .MuiInputBase-root': {
-                  height: '100%',
-                },
-              },
+              sx: { height: 56, '& .MuiInputBase-root': { height: '100%' } },
             },
+            actionBar: { actions: ['clear'] },
           }}
         />
+
+        <Button
+          variant="contained"
+          size="medium"
+          color="error"
+          onClick={handleClearAll}
+          sx={{
+            height: 56,
+            minWidth: 'auto',
+            px: 2,
+            borderRadius: 1.5,
+            textTransform: 'none',
+          }}
+        >
+          <Iconify icon="eva:refresh-fill" />
+        </Button>
       </Stack>
     </Toolbar>
   );
@@ -99,8 +116,16 @@ UserTableToolbar.propTypes = {
   numSelected: PropTypes.number,
   filterName: PropTypes.string,
   onFilterName: PropTypes.func,
-  filterStartDate: PropTypes.oneOfType([PropTypes.instanceOf(Date), PropTypes.string]),
+  filterStartDate: PropTypes.oneOfType([
+    PropTypes.instanceOf(Date),
+    PropTypes.string,
+    PropTypes.oneOf([null]),
+  ]),
   onFilterStartDate: PropTypes.func,
-  filterEndDate: PropTypes.oneOfType([PropTypes.instanceOf(Date), PropTypes.string]),
+  filterEndDate: PropTypes.oneOfType([
+    PropTypes.instanceOf(Date),
+    PropTypes.string,
+    PropTypes.oneOf([null]),
+  ]),
   onFilterEndDate: PropTypes.func,
 };
