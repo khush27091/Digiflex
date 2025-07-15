@@ -16,18 +16,10 @@ import { account } from 'src/_mock/account';
 // ----------------------------------------------------------------------
 
 const MENU_OPTIONS = [
-  // {
-  //   label: 'Home',
-  //   icon: 'eva:home-fill',
-  // },
-  // {
-  //   label: 'Profile',
-  //   icon: 'eva:person-fill',
-  // },
-  // {
-  //   label: 'Settings',
-  //   icon: 'eva:settings-2-fill',
-  // },
+  // Example options
+  // { label: 'Home', icon: 'eva:home-fill' },
+  // { label: 'Profile', icon: 'eva:person-fill' },
+  // { label: 'Settings', icon: 'eva:settings-2-fill' },
 ];
 
 // ----------------------------------------------------------------------
@@ -35,16 +27,22 @@ const MENU_OPTIONS = [
 export default function AccountPopover() {
   const [open, setOpen] = useState(null);
 
-    const router = useRouter();
+  const router = useRouter();
 
   const handleOpen = (event) => {
     setOpen(event.currentTarget);
   };
 
-const handleClose = () => {
-  sessionStorage.clear(); // ✅ Clears ALL sessionStorage data
-  router.push('/', { replace: true }); // ✅ Redirect to login
-};
+  // ✅ New: Just close the popover, no logout
+  const handleClosePopover = () => {
+    setOpen(null);
+  };
+
+  // ✅ New: Actually logs out and redirects
+  const handleLogout = () => {
+    sessionStorage.clear();
+    router.push('/', { replace: true });
+  };
 
   return (
     <>
@@ -76,7 +74,7 @@ const handleClose = () => {
       <Popover
         open={!!open}
         anchorEl={open}
-        onClose={handleClose}
+        onClose={handleClosePopover} // ✅ Just close
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
         PaperProps={{
@@ -100,7 +98,7 @@ const handleClose = () => {
         <Divider sx={{ borderStyle: 'dashed' }} />
 
         {MENU_OPTIONS.map((option) => (
-          <MenuItem key={option.label} onClick={handleClose}>
+          <MenuItem key={option.label} onClick={handleClosePopover}>
             {option.label}
           </MenuItem>
         ))}
@@ -110,7 +108,7 @@ const handleClose = () => {
         <MenuItem
           disableRipple
           disableTouchRipple
-          onClick={handleClose}
+          onClick={handleLogout} // ✅ Only logs out here
           sx={{ typography: 'body2', color: 'error.main', py: 1.5 }}
         >
           Logout

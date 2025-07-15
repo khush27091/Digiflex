@@ -1,4 +1,3 @@
-
 // import { useRef, useState, useEffect } from 'react';
 // import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -23,6 +22,7 @@
 //   const today = new Date().toISOString().split('T')[0];
 //   const existingData = location.state?.formData;
 
+//   // ✅ Hydrate photos with previews if editing
 //   const [formValues, setFormValues] = useState(
 //     existingData
 //       ? {
@@ -33,16 +33,18 @@
 //           areas: existingData.areas?.length
 //             ? existingData.areas.map((area) => ({
 //                 ...area,
-//                 photo: null,
-//                 photoPreview: area.photoPreview || area.photoUrl || null,
+//                 photos:
+//                   area.photos?.map((p) => ({
+//                     preview: p.preview,
+//                     file: null,
+//                   })) || [],
 //               }))
 //             : [
 //                 {
 //                   areaName: '',
 //                   height: '',
 //                   width: '',
-//                   photo: null,
-//                   photoPreview: null,
+//                   photos: [],
 //                   notes: '',
 //                 },
 //               ],
@@ -57,8 +59,7 @@
 //               areaName: '',
 //               height: '',
 //               width: '',
-//               photo: null,
-//               photoPreview: null,
+//               photos: [],
 //               notes: '',
 //             },
 //           ],
@@ -78,12 +79,13 @@
 //   const canvasRef = useRef();
 //   const [stream, setStream] = useState(null);
 
+//   // ✅ Save draft (optional)
 //   useEffect(() => {
 //     const serializable = {
 //       ...formValues,
 //       areas: formValues.areas.map((area) => ({
 //         ...area,
-//         photo: null,
+//         photos: area.photos.map((p) => ({ preview: p.preview })),
 //       })),
 //     };
 //     sessionStorage.setItem('userFormDraft', JSON.stringify(serializable));
@@ -135,15 +137,7 @@
 
 //   const handleChange = (index, field, value) => {
 //     const areas = [...formValues.areas];
-//     if (field === 'photo') {
-//       if (areas[index].photoPreview) {
-//         URL.revokeObjectURL(areas[index].photoPreview);
-//       }
-//       areas[index][field] = value;
-//       areas[index].photoPreview = URL.createObjectURL(value);
-//     } else {
-//       areas[index][field] = value;
-//     }
+//     areas[index][field] = value;
 //     setFormValues({ ...formValues, areas });
 
 //     if (errors.areas?.[index]?.[field]) {
@@ -156,6 +150,26 @@
 //     }
 //   };
 
+//   const handleAddPhotos = (index, files) => {
+//     const areas = [...formValues.areas];
+//     const newPhotos = Array.from(files).map((file) => ({
+//       file,
+//       preview: URL.createObjectURL(file),
+//     }));
+//     areas[index].photos = areas[index].photos.concat(newPhotos);
+//     setFormValues({ ...formValues, areas });
+//   };
+
+//   const handleRemovePhoto = (index, photoIdx) => {
+//     const areas = [...formValues.areas];
+//     const photo = areas[index].photos[photoIdx];
+//     if (photo.preview) {
+//       URL.revokeObjectURL(photo.preview);
+//     }
+//     areas[index].photos.splice(photoIdx, 1);
+//     setFormValues({ ...formValues, areas });
+//   };
+
 //   const handleAddRow = () => {
 //     setFormValues({
 //       ...formValues,
@@ -165,8 +179,7 @@
 //           areaName: '',
 //           height: '',
 //           width: '',
-//           photo: null,
-//           photoPreview: null,
+//           photos: [],
 //           notes: '',
 //         },
 //       ],
@@ -180,9 +193,9 @@
 //   const handleRemoveRow = (index) => {
 //     const areas = [...formValues.areas];
 //     const areaErrors = [...errors.areas];
-//     if (areas[index].photoPreview) {
-//       URL.revokeObjectURL(areas[index].photoPreview);
-//     }
+//     areas[index].photos.forEach((p) => {
+//       if (p.preview) URL.revokeObjectURL(p.preview);
+//     });
 //     areas.splice(index, 1);
 //     areaErrors.splice(index, 1);
 //     setFormValues({ ...formValues, areas });
@@ -198,10 +211,18 @@
 //         item.name === formValues.name && item.mobile === formValues.mobile
 //     );
 
+//     const saveData = {
+//       ...formValues,
+//       areas: formValues.areas.map((area) => ({
+//         ...area,
+//         photos: area.photos.map((p) => ({ preview: p.preview })),
+//       })),
+//     };
+
 //     if (index !== -1) {
-//       existingList[index] = formValues;
+//       existingList[index] = saveData;
 //     } else {
-//       existingList.push(formValues);
+//       existingList.push(saveData);
 //     }
 
 //     sessionStorage.setItem('userForms', JSON.stringify(existingList));
@@ -245,7 +266,7 @@
 //     canvas.toBlob((blob) => {
 //       if (blob) {
 //         const file = new File([blob], 'captured.jpg', { type: 'image/jpeg' });
-//         handleChange(cameraIndex, 'photo', file);
+//         handleAddPhotos(cameraIndex, [file]);
 //       }
 //     }, 'image/jpeg');
 //     closeCamera();
@@ -258,6 +279,7 @@
 //       </Typography>
 
 //       <Stack spacing={3}>
+//         {/* Basic fields */}
 //         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
 //           <TextField
 //             label="Customer Name"
@@ -307,6 +329,7 @@
 //           fullWidth
 //         />
 
+//         {/* Areas */}
 //         {formValues.areas.map((area, index) => (
 //           <Box key={index} p={2} border="1px dashed #ccc" borderRadius={2}>
 //             <Stack
@@ -368,15 +391,15 @@
 //               <Grid item xs={12}>
 //                 <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
 //                   <Button variant="outlined" component="label">
-//                     Upload Photo
+//                     Upload Photos
 //                     <input
 //                       hidden
 //                       accept="image/*"
 //                       type="file"
-//                       capture="environment"
+//                       multiple
 //                       onChange={(e) => {
-//                         if (e.target.files[0]) {
-//                           handleChange(index, 'photo', e.target.files[0]);
+//                         if (e.target.files.length) {
+//                           handleAddPhotos(index, e.target.files);
 //                         }
 //                       }}
 //                     />
@@ -387,49 +410,49 @@
 //                   </Button>
 //                 </Stack>
 
-//                 {area.photoPreview && (
-//   <Box
-//     mt={2}
-//     sx={{
-//       position: 'relative',
-//       display: 'inline-block',
-//       maxWidth: '200px',
-//     }}
-//   >
-//     <img
-//       src={area.photoPreview}
-//       alt={`Preview ${index + 1}`}
-//       style={{
-//         width: '100%',
-//         borderRadius: 8,
-//       }}
-//     />
-
-//     <IconButton
-//       size="small"
-//       onClick={() => {
-//         const areas = [...formValues.areas];
-//         if (areas[index].photoPreview) {
-//           URL.revokeObjectURL(areas[index].photoPreview);
-//         }
-//         areas[index].photo = null;
-//         areas[index].photoPreview = null;
-//         setFormValues({ ...formValues, areas });
-//       }}
-//       sx={{
-//         position: 'absolute',
-//         top: 8,
-//         right: 8,
-//         backgroundColor: 'rgba(255,255,255,0.7)',
-//         '&:hover': {
-//           backgroundColor: 'rgba(255,255,255,1)',
-//         },
-//       }}
-//     >
-//       <Iconify icon="eva:close-fill" />
-//     </IconButton>
-//   </Box>
-// )}
+//                 {area.photos.length > 0 && (
+//                   <Stack direction="row" spacing={2} mt={2} flexWrap="wrap">
+//                     {area.photos.map((photo, photoIdx) => (
+//                       <Box
+//                         key={photoIdx}
+//                         sx={{
+//                           position: 'relative',
+//                           width: 120,
+//                           height: 120,
+//                           borderRadius: 2,
+//                           overflow: 'hidden',
+//                           mr: 2,
+//                           mb: 2,
+//                         }}
+//                       >
+//                         <img
+//                           src={photo.preview}
+//                           alt={`Preview ${index + 1}-${photoIdx + 1}`}
+//                           style={{
+//                             width: '100%',
+//                             height: '100%',
+//                             objectFit: 'cover',
+//                           }}
+//                         />
+//                         <IconButton
+//                           size="small"
+//                           onClick={() => handleRemovePhoto(index, photoIdx)}
+//                           sx={{
+//                             position: 'absolute',
+//                             top: 4,
+//                             right: 4,
+//                             backgroundColor: 'rgba(255,255,255,0.7)',
+//                             '&:hover': {
+//                               backgroundColor: 'rgba(255,255,255,1)',
+//                             },
+//                           }}
+//                         >
+//                           <Iconify icon="eva:close-fill" />
+//                         </IconButton>
+//                       </Box>
+//                     ))}
+//                   </Stack>
+//                 )}
 //               </Grid>
 
 //               <Grid item xs={12}>
@@ -529,30 +552,14 @@ export default function UserFormPage() {
                     file: null,
                   })) || [],
               }))
-            : [
-                {
-                  areaName: '',
-                  height: '',
-                  width: '',
-                  photos: [],
-                  notes: '',
-                },
-              ],
+            : [], // ✅ INITIALLY EMPTY
         }
       : {
           name: '',
           mobile: '',
           address: '',
           measurementDate: today,
-          areas: [
-            {
-              areaName: '',
-              height: '',
-              width: '',
-              photos: [],
-              notes: '',
-            },
-          ],
+          areas: [], // ✅ INITIALLY EMPTY
         }
   );
 
@@ -569,7 +576,7 @@ export default function UserFormPage() {
   const canvasRef = useRef();
   const [stream, setStream] = useState(null);
 
-  // ✅ Save draft (optional)
+  // ✅ Save draft
   useEffect(() => {
     const serializable = {
       ...formValues,
@@ -581,49 +588,58 @@ export default function UserFormPage() {
     sessionStorage.setItem('userFormDraft', JSON.stringify(serializable));
   }, [formValues]);
 
-  const validateForm = () => {
-    let isValid = true;
-    const newErrors = { name: '', mobile: '', address: '', areas: [] };
+const validateForm = () => {
+  let isValid = true;
+  const newErrors = { name: '', mobile: '', address: '', areas: [] };
 
-    if (!formValues.name.trim()) {
-      newErrors.name = 'Name is required';
+  if (!formValues.name.trim()) {
+    newErrors.name = 'Name is required';
+    isValid = false;
+  }
+
+  const mobileRegex = /^[0-9]{10}$/;
+  if (!formValues.mobile.trim()) {
+    newErrors.mobile = 'Mobile number is required';
+    isValid = false;
+  } else if (!mobileRegex.test(formValues.mobile)) {
+    newErrors.mobile = 'Enter a valid 10-digit number';
+    isValid = false;
+  }
+
+  if (!formValues.address.trim()) {
+    newErrors.address = 'Address is required';
+    isValid = false;
+  }
+
+  // ✅ Filter out empty measurement rows
+  const filteredAreas = formValues.areas.filter(area =>
+    area.areaName.trim() || area.height.trim() || area.width.trim()
+  );
+
+  newErrors.areas = filteredAreas.map((area) => {
+    const areaErrors = {};
+    if (!area.areaName.trim()) {
+      areaErrors.areaName = 'Area Name is required';
       isValid = false;
     }
-
-    const mobileRegex = /^[0-9]{10}$/;
-    if (!formValues.mobile.trim()) {
-      newErrors.mobile = 'Mobile number is required';
-      isValid = false;
-    } else if (!mobileRegex.test(formValues.mobile)) {
-      newErrors.mobile = 'Enter a valid 10-digit number';
+    if (!area.height.trim()) {
+      areaErrors.height = 'Height is required';
       isValid = false;
     }
-
-    if (!formValues.address.trim()) {
-      newErrors.address = 'Address is required';
+    if (!area.width.trim()) {
+      areaErrors.width = 'Width is required';
       isValid = false;
     }
+    return areaErrors;
+  });
 
-    newErrors.areas = formValues.areas.map((area) => {
-      const areaErrors = {};
-      if (!area.areaName.trim()) {
-        areaErrors.areaName = 'Area Name is required';
-        isValid = false;
-      }
-      if (!area.height.trim()) {
-        areaErrors.height = 'Height is required';
-        isValid = false;
-      }
-      if (!area.width.trim()) {
-        areaErrors.width = 'Width is required';
-        isValid = false;
-      }
-      return areaErrors;
-    });
+  if (filteredAreas.length !== formValues.areas.length) {
+    setFormValues({ ...formValues, areas: filteredAreas });
+  }
 
-    setErrors(newErrors);
-    return isValid;
-  };
+  setErrors(newErrors);
+  return isValid;
+};
 
   const handleChange = (index, field, value) => {
     const areas = [...formValues.areas];
@@ -819,7 +835,7 @@ export default function UserFormPage() {
           fullWidth
         />
 
-        {/* Areas */}
+        {/* Show areas only if there are any */}
         {formValues.areas.map((area, index) => (
           <Box key={index} p={2} border="1px dashed #ccc" borderRadius={2}>
             <Stack
@@ -974,7 +990,7 @@ export default function UserFormPage() {
             Cancel
           </Button>
           <Button variant="contained" onClick={handleSubmit}>
-            {existingData ? 'Edit Measurements' : 'Save Measurements'}
+            Save Measurements
           </Button>
         </Stack>
       </Stack>
