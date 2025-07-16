@@ -15,22 +15,12 @@ const navConfig = [
  {
     title: 'Mesurements',
     path: '/user',
-    icon: icon('ic_user'),
+    icon: icon('ic_measurement'),
   },
   // {
-  //   title: 'Products',
+  //   title: 'User Management',
   //   path: '/products',
-  //   icon: icon('ic_cart'),
-  // },
-  // {
-  //   title: 'Blog',
-  //   path: '/blog',
-  //   icon: icon('ic_blog'),
-  // },
-  // {
-  //   title: 'Not Found',
-  //   path: '/404',
-  //   icon: icon('ic_disabled'),
+  //   icon: icon('ic_user'),
   // },
 ];
 

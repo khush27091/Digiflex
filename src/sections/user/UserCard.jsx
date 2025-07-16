@@ -1,14 +1,14 @@
-import dayjs from 'dayjs';
 import { useState } from 'react';
 import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
 
-import Button from '@mui/material/Button';
+import Card from '@mui/material/Card';
+import Stack from '@mui/material/Stack';
 import Dialog from '@mui/material/Dialog';
+import Button from '@mui/material/Button';
 import Popover from '@mui/material/Popover';
-import TableRow from '@mui/material/TableRow';
 import MenuItem from '@mui/material/MenuItem';
-import TableCell from '@mui/material/TableCell';
+import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
@@ -17,17 +17,9 @@ import DialogContentText from '@mui/material/DialogContentText';
 
 import Iconify from 'src/components/iconify';
 
-// ----------------------------------------------------------------------
-
-export default function UserTableRow({
-  selected,
-  row,
-  handleDelete,
-}) {
+export default function UserCard({ row, handleDelete }) {
   const [openMenu, setOpenMenu] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
-
-  console.log('UserTableRow', row);
 
   const navigate = useNavigate();
 
@@ -48,28 +40,24 @@ export default function UserTableRow({
   };
 
   const onDeleteConfirmed = () => {
-    handleDelete(row.name); // ✅ use row.name!
+    handleDelete(row.name);
     handleCloseDialog();
     handleCloseMenu();
   };
 
   return (
-    <>
-      <TableRow hover tabIndex={-1} role="checkbox" selected={selected}>
-        <TableCell>{row.name}</TableCell>
-        <TableCell>{row.mobile}</TableCell>
-       <TableCell>
-  {row.measurementDate
-    ? dayjs(row.measurementDate, 'YYYY-MM-DD').format('DD/MM/YYYY')
-    : ''}
-</TableCell>
+    <Card sx={{ p: 2 }}>
+      <Stack direction="row" justifyContent="space-between" alignItems="center">
+        <Stack>
+          <Typography variant="subtitle1">Name: {row.name}</Typography>
+          <Typography variant="body2">Mobile: {row.mobile}</Typography>
+          <Typography variant="body2">Date: {row.measurementDate}</Typography>
+        </Stack>
 
-        <TableCell align="right">
-          <IconButton onClick={handleOpenMenu}>
-            <Iconify icon="eva:more-vertical-fill" />
-          </IconButton>
-        </TableCell>
-      </TableRow>
+        <IconButton onClick={handleOpenMenu}>
+          <Iconify icon="eva:more-vertical-fill" />
+        </IconButton>
+      </Stack>
 
       <Popover
         open={!!openMenu}
@@ -82,11 +70,12 @@ export default function UserTableRow({
         }}
       >
         <MenuItem
-          onClick={() =>
+          onClick={() => {
             navigate('/user/new', {
-              state: { formData: row }, // ✅ pass full row
-            })
-          }
+              state: { formData: row },
+            });
+            handleCloseMenu();
+          }}
         >
           <Iconify icon="eva:edit-fill" sx={{ mr: 2 }} />
           Edit
@@ -101,34 +90,24 @@ export default function UserTableRow({
         </MenuItem>
       </Popover>
 
-      <Dialog
-        open={openDialog}
-        onClose={handleCloseDialog}
-      >
+      <Dialog open={openDialog} onClose={handleCloseDialog}>
         <DialogTitle>Delete Measurement</DialogTitle>
         <DialogContent>
           <DialogContentText>
-  Are you sure you want to delete <strong>{row.name}</strong>?
-  This action cannot be undone.
-</DialogContentText>
+            Are you sure you want to delete <strong>{row.name}</strong>? This action cannot be undone.
+          </DialogContentText>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Cancel</Button>
-          <Button
-            onClick={onDeleteConfirmed}
-            color="error"
-            variant="contained"
-          >
+          <Button onClick={onDeleteConfirmed} color="error" variant="contained">
             Delete
           </Button>
         </DialogActions>
       </Dialog>
-    </>
+    </Card>
   );
 }
-
-UserTableRow.propTypes = {
-  selected: PropTypes.any,
+UserCard.propTypes = {
   row: PropTypes.object.isRequired,
   handleDelete: PropTypes.func.isRequired,
 };

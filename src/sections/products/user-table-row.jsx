@@ -1,4 +1,3 @@
-import dayjs from 'dayjs';
 import { useState } from 'react';
 import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
@@ -58,11 +57,7 @@ export default function UserTableRow({
       <TableRow hover tabIndex={-1} role="checkbox" selected={selected}>
         <TableCell>{row.name}</TableCell>
         <TableCell>{row.mobile}</TableCell>
-       <TableCell>
-  {row.measurementDate
-    ? dayjs(row.measurementDate, 'YYYY-MM-DD').format('DD/MM/YYYY')
-    : ''}
-</TableCell>
+        <TableCell>{row.measurementDate}</TableCell>
 
         <TableCell align="right">
           <IconButton onClick={handleOpenMenu}>

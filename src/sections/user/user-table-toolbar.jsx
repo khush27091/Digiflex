@@ -1,11 +1,11 @@
 import PropTypes from 'prop-types';
 
 import Stack from '@mui/material/Stack';
+import { Tooltip } from '@mui/material';
+import Button from '@mui/material/Button';
 import Toolbar from '@mui/material/Toolbar';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import InputAdornment from '@mui/material/InputAdornment';
-import IconButton from '@mui/material/IconButton';
-import Button from '@mui/material/Button';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 import Iconify from 'src/components/iconify';
@@ -91,7 +91,7 @@ export default function UserTableToolbar({
             actionBar: { actions: ['clear'] },
           }}
         />
-
+    <Tooltip title="Clear All Filters" arrow>
         <Button
           variant="contained"
           size="medium"
@@ -107,6 +107,7 @@ export default function UserTableToolbar({
         >
           <Iconify icon="eva:refresh-fill" />
         </Button>
+        </Tooltip>
       </Stack>
     </Toolbar>
   );
