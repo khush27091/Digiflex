@@ -42,6 +42,7 @@
     }
   },
   "rules": {
+    "prefer-template":0,
     "jsx-a11y/media-has-caption" : 0,
     "no-alert": 0,
     "camelcase": 0,
