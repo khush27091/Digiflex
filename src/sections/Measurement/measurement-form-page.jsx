@@ -313,7 +313,7 @@ const [formValues, setFormValues] = useState(() => {
 
 
     return (
-      <Container>
+      <Container maxWidth="xl">
         <Typography variant="h4" mb={3}>
           {existingData ? 'Edit Measurement' : 'Add New Measurement'}
         </Typography>

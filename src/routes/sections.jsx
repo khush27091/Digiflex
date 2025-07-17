@@ -12,8 +12,8 @@ export const UserPage = lazy(() => import('src/pages/user'));
 export const LoginPage = lazy(() => import('src/pages/login'));
 export const ProductsPage = lazy(() => import('src/pages/products'));
 export const Page404 = lazy(() => import('src/pages/page-not-found'));
-export const UserAddPage = lazy(() => import('src/sections/user/user-form-page'));
-export const UserManagementPage = lazy(() => import('src/sections/products/user-form-page'));
+export const UserAddPage = lazy(() => import('src/sections/Measurement/measurement-form-page'));
+export const UserManagementPage = lazy(() => import('src/sections/User Master/user-form-page'));
 
 
 // ----------------------------------------------------------------------

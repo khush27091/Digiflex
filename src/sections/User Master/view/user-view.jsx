@@ -135,7 +135,7 @@ export default function UserPage() {
     rows.length === 0;
 
   return (
-    <Container>
+    <Container maxWidth="xl">
       <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
         <Typography variant="h4">User Master</Typography>
 

@@ -17,12 +17,12 @@ import TablePagination from '@mui/material/TablePagination';
 import Iconify from 'src/components/iconify';
 import Scrollbar from 'src/components/scrollbar';
 
-import UserCard from '../UserCard';
+import UserCard from '../MeasurementCard';
 import TableNoData from '../table-no-data';
-import UserTableRow from '../user-table-row';
-import UserTableHead from '../user-table-head';
 import TableEmptyRows from '../table-empty-rows';
-import UserTableToolbar from '../user-table-toolbar';
+import UserTableRow from '../measurement-table-row';
+import UserTableHead from '../measurement-table-head';
+import UserTableToolbar from '../measurement-table-toolbar';
 import { emptyRows, applyFilter, getComparator } from '../utils';
 
 
@@ -132,7 +132,7 @@ export default function UserPage() {
     rows.length === 0;
 
   return (
-    <Container>
+    <Container maxWidth="xl">
       <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
         <Typography variant="h4">Measurements</Typography>
 
