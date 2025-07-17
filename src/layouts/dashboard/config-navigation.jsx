@@ -17,11 +17,11 @@ const navConfig = [
     path: '/user',
     icon: icon('ic_measurement'),
   },
-  // {
-  //   title: 'User Management',
-  //   path: '/products',
-  //   icon: icon('ic_user'),
-  // },
+  {
+    title: 'User Management',
+    path: '/products',
+    icon: icon('ic_user'),
+  },
 ];
 
 export default navConfig;

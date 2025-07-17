@@ -4,12 +4,14 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Stack,
   Button,
-  Container,
+  Dialog,
   TextField,
-  Typography,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from '@mui/material';
 
-export default function UserFormPage() {
+export default function UserFormDialog() {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -18,40 +20,50 @@ export default function UserFormPage() {
   const [formValues, setFormValues] = useState(
     existingData
       ? {
-          name: existingData.name || '',
-          mobile: existingData.mobile || '',
+          firstName: existingData.firstName || '',
+          lastName: existingData.lastName || '',
+          email: existingData.email || '',
+          phone: existingData.phone || '',
         }
       : {
-          name: '',
-          mobile: '',
+          firstName: '',
+          lastName: '',
+          email: '',
+          phone: '',
         }
   );
 
   const [errors, setErrors] = useState({
-    name: '',
-    mobile: '',
+    firstName: '',
+    lastName: '',
+    phone: '',
   });
 
-  // ✅ Save draft to sessionStorage
+  // Save draft to sessionStorage under masteruserDraft
   useEffect(() => {
-    sessionStorage.setItem('userFormDraft', JSON.stringify(formValues));
+    sessionStorage.setItem('masteruserDraft', JSON.stringify(formValues));
   }, [formValues]);
 
   const validateForm = () => {
     let isValid = true;
-    const newErrors = { name: '', mobile: '' };
+    const newErrors = { firstName: '', lastName: '', phone: '' };
 
-    if (!formValues.name.trim()) {
-      newErrors.name = 'Name is required';
+    if (!formValues.firstName.trim()) {
+      newErrors.firstName = 'First name is required';
       isValid = false;
     }
 
-    const mobileRegex = /^[0-9]{10}$/;
-    if (!formValues.mobile.trim()) {
-      newErrors.mobile = 'Mobile number is required';
+    if (!formValues.lastName.trim()) {
+      newErrors.lastName = 'Last name is required';
       isValid = false;
-    } else if (!mobileRegex.test(formValues.mobile)) {
-      newErrors.mobile = 'Enter a valid 10-digit number';
+    }
+
+    const phoneRegex = /^[0-9]{10}$/;
+    if (!formValues.phone.trim()) {
+      newErrors.phone = 'Phone number is required';
+      isValid = false;
+    } else if (!phoneRegex.test(formValues.phone)) {
+      newErrors.phone = 'Enter a valid 10-digit number';
       isValid = false;
     }
 
@@ -62,10 +74,12 @@ export default function UserFormPage() {
   const handleSubmit = () => {
     if (!validateForm()) return;
 
-    const existingList = JSON.parse(sessionStorage.getItem('userForms') || '[]');
+    const existingList = JSON.parse(sessionStorage.getItem('masteruser') || '[]');
     const index = existingList.findIndex(
       (item) =>
-        item.name === formValues.name && item.mobile === formValues.mobile
+        item.firstName === formValues.firstName &&
+        item.lastName === formValues.lastName &&
+        item.phone === formValues.phone
     );
 
     if (index !== -1) {
@@ -74,51 +88,75 @@ export default function UserFormPage() {
       existingList.push(formValues);
     }
 
-    sessionStorage.setItem('userForms', JSON.stringify(existingList));
-    sessionStorage.removeItem('userFormDraft');
-    navigate('/user');
+    sessionStorage.setItem('masteruser', JSON.stringify(existingList));
+    sessionStorage.removeItem('masteruserDraft');
+    navigate('/products');
+  };
+
+  const handleClose = () => {
+    navigate('/products');
   };
 
   return (
-    <Container>
-      <Typography variant="h4" mb={3}>
-        {existingData ? 'Edit User' : 'Add New User'}
-      </Typography>
+    <Dialog open fullWidth maxWidth="sm">
+      <DialogTitle>{existingData ? 'Edit User' : 'Add New User'}</DialogTitle>
+      <DialogContent>
+        <Stack spacing={3} mt={1}>
+          <TextField
+            label="First Name"
+            value={formValues.firstName}
+            onChange={(e) => {
+              setFormValues({ ...formValues, firstName: e.target.value });
+              if (errors.firstName) setErrors({ ...errors, firstName: '' });
+            }}
+            fullWidth
+            error={!!errors.firstName}
+            helperText={errors.firstName}
+          />
 
-      <Stack spacing={3}>
-        <TextField
-          label="Customer Name"
-          value={formValues.name}
-          onChange={(e) => {
-            setFormValues({ ...formValues, name: e.target.value });
-            if (errors.name) setErrors({ ...errors, name: '' });
-          }}
-          fullWidth
-          error={!!errors.name}
-          helperText={errors.name}
-        />
+          <TextField
+            label="Last Name"
+            value={formValues.lastName}
+            onChange={(e) => {
+              setFormValues({ ...formValues, lastName: e.target.value });
+              if (errors.lastName) setErrors({ ...errors, lastName: '' });
+            }}
+            fullWidth
+            error={!!errors.lastName}
+            helperText={errors.lastName}
+          />
 
-        <TextField
-          label="Customer Mobile"
-          value={formValues.mobile}
-          onChange={(e) => {
-            setFormValues({ ...formValues, mobile: e.target.value });
-            if (errors.mobile) setErrors({ ...errors, mobile: '' });
-          }}
-          fullWidth
-          error={!!errors.mobile}
-          helperText={errors.mobile}
-        />
+          <TextField
+            label="Email"
+            value={formValues.email}
+            onChange={(e) => {
+              setFormValues({ ...formValues, email: e.target.value });
+            }}
+            fullWidth
+          />
 
-        <Stack direction="row" spacing={2} justifyContent="flex-end">
-          <Button variant="outlined" onClick={() => navigate('/user')}>
-            Cancel
-          </Button>
-          <Button variant="contained" onClick={handleSubmit}>
-            Save User
-          </Button>
+          <TextField
+            label="Phone Number"
+            value={formValues.phone}
+            onChange={(e) => {
+              setFormValues({ ...formValues, phone: e.target.value });
+              if (errors.phone) setErrors({ ...errors, phone: '' });
+            }}
+            fullWidth
+            error={!!errors.phone}
+            helperText={errors.phone}
+          />
         </Stack>
-      </Stack>
-    </Container>
+      </DialogContent>
+
+      <DialogActions sx={{ px: 3, pb: 2 }}>
+        <Button variant="outlined" onClick={handleClose}>
+          Cancel
+        </Button>
+        <Button variant="contained" onClick={handleSubmit}>
+          Save User
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 }
