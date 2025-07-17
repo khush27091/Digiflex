@@ -53,6 +53,23 @@ export default function UserTableRow({
     handleCloseMenu();
   };
 
+    const isMobile = /iPhone|Android|iPad/i.test(navigator.userAgent);
+const baseURL = isMobile
+  ? 'https://api.whatsapp.com/send'
+  : 'https://web.whatsapp.com/send';
+
+const phone = '91' + row.selectedUser.phone.replace(/[^\d]/g, '');
+const message = `Hello ${row.selectedUser.firstName} ${row.selectedUser.lastName},\n\n` +
+  `Here are your measurement appointment details:\n` +
+  `👤 Name: ${row.name}\n` +
+  `📞 Phone: ${row.mobile}\n` +
+  `🏠 Address: ${row.address || 'N/A'}\n` +
+  `📅 Date: ${row.measurementDate || 'N/A'}`;
+
+const whatsappLink = `${baseURL}?phone=${phone}&text=${encodeURIComponent(message)}`;
+
+
+
   return (
     <>
       <TableRow hover tabIndex={-1} role="checkbox" selected={selected}>
@@ -88,22 +105,16 @@ export default function UserTableRow({
       >
 
 
-        <MenuItem
-          component="a"
-          href={`https://api.whatsapp.com/send?phone=91${row.selectedUser.phone.replace(/[^\d]/g, '')}&text=${encodeURIComponent(
-            `Hello ${row.selectedUser.firstName} ${row.selectedUser.lastName},\n\n` +
-            `Here are your measurement appointment details:\n` +
-            `👤 Name: ${row.name}\n` +
-            `📞 Phone: ${row.mobile}\n` +
-            `🏠 Address: ${row.address || 'N/A'}\n` +
-            `📅 Date: ${row.measurementDate || 'N/A'}`
-          )}`}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Iconify icon="ic:baseline-whatsapp" sx={{ mr: 2, color: 'green' }} />
-          WhatsApp
-        </MenuItem>
+       <MenuItem
+  component="a"
+  href={whatsappLink}
+  target="_blank"
+  rel="noopener noreferrer"
+>
+  <Iconify icon="ic:baseline-whatsapp" sx={{ mr: 2, color: 'green' }} />
+  WhatsApp
+</MenuItem>
+
 
         <MenuItem
           onClick={() =>
