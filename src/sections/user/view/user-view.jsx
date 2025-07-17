@@ -198,6 +198,7 @@ export default function UserPage() {
                     { id: 'name', label: 'Name' },
                     { id: 'mobile', label: 'Mobile' },
                     { id: 'measurementDate', label: 'Date' },
+                    { id: 'user', label: 'Assigned User' },
                     { id: '' },
                   ]}
                 />

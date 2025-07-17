@@ -78,6 +78,7 @@ export function applyFilter({
       return afterStart && beforeEnd;
     });
   }
+  
 
   return filtered;
 }

@@ -49,9 +49,9 @@ export default function UserCard({ row, handleDelete }) {
     <Card sx={{ p: 2 }}>
       <Stack direction="row" justifyContent="space-between" alignItems="center">
         <Stack>
-          <Typography variant="subtitle1">Name: {row.name}</Typography>
+          <Typography variant="subtitle1">{row.name}</Typography>
           <Typography variant="body2">Mobile: {row.mobile}</Typography>
-          <Typography variant="body2">Email: {row.email}</Typography>
+          <Typography variant="body2">Email: {row.email ? row.email : "-"}</Typography>
         </Stack>
 
         <IconButton onClick={handleOpenMenu}>

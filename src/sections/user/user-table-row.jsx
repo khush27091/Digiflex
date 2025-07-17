@@ -63,6 +63,11 @@ export default function UserTableRow({
     ? dayjs(row.measurementDate, 'YYYY-MM-DD').format('DD/MM/YYYY')
     : ''}
 </TableCell>
+  <TableCell>
+    {row.selectedUser
+      ? `${row.selectedUser.firstName} ${row.selectedUser.lastName}`
+      : '-'}
+  </TableCell>
 
         <TableCell align="right">
           <IconButton onClick={handleOpenMenu}>
