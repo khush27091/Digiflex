@@ -89,6 +89,24 @@ export default function UserCard({ row, handleDelete }) {
           sx: { width: 140 },
         }}
       >
+
+                <MenuItem
+                  component="a"
+                  href={`https://api.whatsapp.com/send?phone=91${row.selectedUser.phone.replace(/[^\d]/g, '')}&text=${encodeURIComponent(
+                    `Hello ${row.selectedUser.firstName} ${row.selectedUser.lastName},\n\n` +
+                    `Here are your measurement appointment details:\n` +
+                    `👤 Name: ${row.name}\n` +
+                    `📞 Phone: ${row.mobile}\n` +
+                    `🏠 Address: ${row.address || 'N/A'}\n` +
+                    `📅 Date: ${row.measurementDate || 'N/A'}`
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Iconify icon="ic:baseline-whatsapp" sx={{ mr: 2, color: 'green' }} />
+                  WhatsApp
+                </MenuItem>
+        
         <MenuItem
           onClick={() => {
             navigate('/user/new', {
