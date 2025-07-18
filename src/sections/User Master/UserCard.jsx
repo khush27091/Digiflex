@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import PropTypes from 'prop-types';
-import { useNavigate } from 'react-router-dom';
 
 import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
@@ -17,11 +16,10 @@ import DialogContentText from '@mui/material/DialogContentText';
 
 import Iconify from 'src/components/iconify';
 
-export default function UserCard({ row, handleDelete }) {
+export default function UserCard({ row, handleDelete,onEditUser }) {
   const [openMenu, setOpenMenu] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
 
-  const navigate = useNavigate();
 
   const handleOpenMenu = (event) => {
     setOpenMenu(event.currentTarget);
@@ -71,15 +69,14 @@ export default function UserCard({ row, handleDelete }) {
       >
         <MenuItem
           onClick={() => {
-            navigate('/user/new', {
-              state: { formData: row },
-            });
             handleCloseMenu();
+            if (typeof row === 'object') onEditUser(row);
           }}
         >
           <Iconify icon="eva:edit-fill" sx={{ mr: 2 }} />
           Edit
         </MenuItem>
+
 
         <MenuItem
           onClick={handleOpenDialog}
@@ -110,4 +107,5 @@ export default function UserCard({ row, handleDelete }) {
 UserCard.propTypes = {
   row: PropTypes.object.isRequired,
   handleDelete: PropTypes.func.isRequired,
+    onEditUser: PropTypes.func.isRequired, // ✅ Add this line
 };

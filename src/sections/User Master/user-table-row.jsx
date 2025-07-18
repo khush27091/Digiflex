@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import PropTypes from 'prop-types';
-import { useNavigate } from 'react-router-dom';
 
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
@@ -22,13 +21,10 @@ export default function UserTableRow({
   selected,
   row,
   handleDelete,
+  onEditUser
 }) {
   const [openMenu, setOpenMenu] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
-
-  console.log('UserTableRow', row);
-
-  const navigate = useNavigate();
 
   const handleOpenMenu = (event) => {
     setOpenMenu(event.currentTarget);
@@ -57,7 +53,7 @@ export default function UserTableRow({
       <TableRow hover tabIndex={-1} role="checkbox" selected={selected}>
         <TableCell>{row.firstName}{row.lastName} </TableCell>
         <TableCell>{row.phone}</TableCell>
-        <TableCell>{row.email ? row.email  : "-"} </TableCell>
+        <TableCell>{row.email ? row.email : "-"} </TableCell>
 
         <TableCell align="right">
           <IconButton onClick={handleOpenMenu}>
@@ -77,11 +73,10 @@ export default function UserTableRow({
         }}
       >
         <MenuItem
-          onClick={() =>
-            navigate('/products/newuser', {
-              state: { formData: row }, // ✅ pass full row
-            })
-          }
+          onClick={() => {
+            handleCloseMenu();
+            if (typeof row === 'object') onEditUser(row);
+          }}
         >
           <Iconify icon="eva:edit-fill" sx={{ mr: 2 }} />
           Edit
@@ -103,9 +98,9 @@ export default function UserTableRow({
         <DialogTitle>Delete Measurement</DialogTitle>
         <DialogContent>
           <DialogContentText>
-  Are you sure you want to delete <strong>{row.name}</strong>?
-  This action cannot be undone.
-</DialogContentText>
+            Are you sure you want to delete <strong>{row.name}</strong>?
+            This action cannot be undone.
+          </DialogContentText>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Cancel</Button>
@@ -126,4 +121,6 @@ UserTableRow.propTypes = {
   selected: PropTypes.any,
   row: PropTypes.object.isRequired,
   handleDelete: PropTypes.func.isRequired,
+  onEditUser: PropTypes.func.isRequired, // ✅ Add this line
 };
+

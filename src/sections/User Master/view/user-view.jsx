@@ -1,19 +1,11 @@
 import { useState } from 'react';
-// import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 
-import { Box } from '@mui/material';
-import Card from '@mui/material/Card';
-import Stack from '@mui/material/Stack';
-import Table from '@mui/material/Table';
-import Button from '@mui/material/Button';
-import Container from '@mui/material/Container';
 import { useTheme } from '@mui/material/styles';
-import TableBody from '@mui/material/TableBody';
-import Typography from '@mui/material/Typography';
 import useMediaQuery from '@mui/material/useMediaQuery';
-import TableContainer from '@mui/material/TableContainer';
-import TablePagination from '@mui/material/TablePagination';
+import {
+  Box,  Card,Table,Stack,Button, Container,TableBody,Typography ,   
+  TableContainer, TablePagination, 
+} from '@mui/material';
 
 import Iconify from 'src/components/iconify';
 import Scrollbar from 'src/components/scrollbar';
@@ -21,6 +13,7 @@ import Scrollbar from 'src/components/scrollbar';
 import UserCard from '../UserCard';
 import TableNoData from '../table-no-data';
 import UserTableRow from '../user-table-row';
+import UserFormDialog from '../user-form-page';
 import UserTableHead from '../user-table-head';
 import TableEmptyRows from '../table-empty-rows';
 import UserTableToolbar from '../user-table-toolbar';
@@ -33,92 +26,42 @@ export default function UserPage() {
   const [orderBy, setOrderBy] = useState('name');
   const [filterName, setFilterName] = useState('');
   const [rowsPerPage, setRowsPerPage] = useState(5);
-
   const [filterStartDate, setFilterStartDate] = useState(null);
   const [filterEndDate, setFilterEndDate] = useState(null);
 
-  const navigate = useNavigate();
+  const [openDialog, setOpenDialog] = useState(false);
+  const [editingUser, setEditingUser] = useState(null);
+
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
-  // ✅ Changed from 'userForms' to 'masteruser'
-  const savedForms = sessionStorage.getItem('masteruser');
-  const savedData = savedForms ? JSON.parse(savedForms) : [];
+  const savedData = JSON.parse(sessionStorage.getItem('masteruser') || '[]');
 
   const rows = savedData.map((item, index) => ({
     id: index + 1,
     name: `${item.firstName} ${item.lastName}`,
     mobile: item.phone,
-    measurementDate: '-', // Placeholder if no date exists
+    email: item.email || '',
     ...item,
   }));
 
-  const handleSort = (event, id) => {
+  const handleEditUser = (user) => {
+    setEditingUser(user);
+    setOpenDialog(true);
+  };
+
+  const handleDelete = (name) => {
+    const updated = savedData.filter((u) => `${u.firstName} ${u.lastName}` !== name);
+    sessionStorage.setItem('masteruser', JSON.stringify(updated));
+    window.location.reload();
+  };
+
+  const handleSort = (e, id) => {
     const isAsc = orderBy === id && order === 'asc';
     if (id !== '') {
       setOrder(isAsc ? 'desc' : 'asc');
       setOrderBy(id);
     }
-  };
-
-  const handleSelectAllClick = (event) => {
-    if (event.target.checked) {
-      const newSelecteds = rows.map((n) => n.name);
-      setSelected(newSelecteds);
-      return;
-    }
-    setSelected([]);
-  };
-
-  const handleClick = (event, name) => {
-    const selectedIndex = selected.indexOf(name);
-    let newSelected = [];
-    if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selected, name);
-    } else if (selectedIndex === 0) {
-      newSelected = newSelected.concat(selected.slice(1));
-    } else if (selectedIndex === selected.length - 1) {
-      newSelected = newSelected.concat(selected.slice(0, -1));
-    } else if (selectedIndex > 0) {
-      newSelected = newSelected.concat(
-        selected.slice(0, selectedIndex),
-        selected.slice(selectedIndex + 1)
-      );
-    }
-    setSelected(newSelected);
-  };
-
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (event) => {
-    setPage(0);
-    setRowsPerPage(parseInt(event.target.value, 10));
-  };
-
-  const handleFilterByName = (event) => {
-    setPage(0);
-    setFilterName(event.target.value);
-  };
-
-  const handleFilterByStartDate = (newDate) => {
-    setPage(0);
-    setFilterStartDate(newDate);
-  };
-
-  const handleFilterByEndDate = (newDate) => {
-    setPage(0);
-    setFilterEndDate(newDate);
-  };
-
-  const handleDelete = (name) => {
-    const forms = savedForms ? JSON.parse(savedForms) : [];
-    const updatedForms = forms.filter(
-      (form) => `${form.firstName} ${form.lastName}` !== name
-    );
-    sessionStorage.setItem('masteruser', JSON.stringify(updatedForms));
-    window.location.reload();
   };
 
   const dataFiltered = applyFilter({
@@ -129,22 +72,21 @@ export default function UserPage() {
     filterEndDate,
   });
 
-  const notFound =
-    (!dataFiltered.length &&
-      (!!filterName || !!filterStartDate || !!filterEndDate)) ||
-    rows.length === 0;
+  const notFound = !dataFiltered.length && (filterName || filterStartDate || filterEndDate);
 
   return (
     <Container maxWidth="xl">
-      <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
+      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={5}>
         <Typography variant="h4">User Master</Typography>
-
         {!isMobile && (
           <Button
             variant="contained"
             color="inherit"
-            onClick={() => navigate('/products/newuser')}
             startIcon={<Iconify icon="eva:plus-fill" />}
+            onClick={() => {
+              setEditingUser(null);
+              setOpenDialog(true);
+            }}
           >
             New User
           </Button>
@@ -155,11 +97,11 @@ export default function UserPage() {
         <UserTableToolbar
           numSelected={selected.length}
           filterName={filterName}
-          onFilterName={handleFilterByName}
+          onFilterName={(e) => setFilterName(e.target.value)}
           filterStartDate={filterStartDate}
-          onFilterStartDate={handleFilterByStartDate}
+          onFilterStartDate={setFilterStartDate}
           filterEndDate={filterEndDate}
-          onFilterEndDate={handleFilterByEndDate}
+          onFilterEndDate={setFilterEndDate}
         />
 
         <Scrollbar>
@@ -169,17 +111,17 @@ export default function UserPage() {
                 dataFiltered
                   .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                   .map((row) => (
-                    <UserCard key={row.id} row={row} handleDelete={handleDelete} />
+                    <UserCard
+                      key={row.id}
+                      row={row}
+                      handleDelete={handleDelete}
+                      onEditUser={handleEditUser}
+                    />
                   ))
               ) : (
-                <Stack alignItems="center" justifyContent="center" sx={{ py: 5, width: '100%' }}>
-                  <Typography variant="h6" gutterBottom>
-                    <b>No Data</b>
-                  </Typography>
-                  <Typography variant="body2" sx={{ color: 'text.secondary', textAlign: 'center' }}>
-                    There is no data available.<br />
-                    Please add new measurements.
-                  </Typography>
+                <Stack alignItems="center" justifyContent="center" sx={{ py: 5 }}>
+                  <Typography variant="h6">No Data</Typography>
+                  <Typography variant="body2" color="text.secondary">Add some users.</Typography>
                 </Stack>
               )}
             </Stack>
@@ -192,7 +134,9 @@ export default function UserPage() {
                   rowCount={rows.length}
                   numSelected={selected.length}
                   onRequestSort={handleSort}
-                  onSelectAllClick={handleSelectAllClick}
+                  onSelectAllClick={(e) =>
+                    setSelected(e.target.checked ? rows.map((r) => r.name) : [])
+                  }
                   headLabel={[
                     { id: 'name', label: 'Name' },
                     { id: 'mobile', label: 'Mobile' },
@@ -207,17 +151,22 @@ export default function UserPage() {
                       <UserTableRow
                         key={row.id}
                         row={row}
-                        selected={selected.indexOf(row.name) !== -1}
-                        handleClick={(event) => handleClick(event, row.name)}
+                        selected={selected.includes(row.name)}
+                        handleClick={() =>
+                          setSelected((prev) =>
+                            prev.includes(row.name)
+                              ? prev.filter((s) => s !== row.name)
+                              : [...prev, row.name]
+                          )
+                        }
                         handleDelete={handleDelete}
+                        onEditUser={handleEditUser}
                       />
                     ))}
-
                   <TableEmptyRows
                     height={77}
                     emptyRows={emptyRows(page, rowsPerPage, rows.length)}
                   />
-
                   {notFound && <TableNoData query={filterName} />}
                 </TableBody>
               </Table>
@@ -230,33 +179,41 @@ export default function UserPage() {
           component="div"
           count={rows.length}
           rowsPerPage={rowsPerPage}
-          onPageChange={handleChangePage}
           rowsPerPageOptions={[5, 10, 25]}
-          onRowsPerPageChange={handleChangeRowsPerPage}
+          onPageChange={(e, newPage) => setPage(newPage)}
+          onRowsPerPageChange={(e) => {
+            setRowsPerPage(parseInt(e.target.value, 10));
+            setPage(0);
+          }}
         />
       </Card>
 
       {isMobile && (
-        <Box
-          sx={{
-            position: 'fixed',
-            bottom: 16,
-            left: 16,
-            right: 16,
-            zIndex: 1100,
-          }}
-        >
+        <Box sx={{ position: 'fixed', bottom: 16, left: 16, right: 16 }}>
           <Button
+            fullWidth
             variant="contained"
             color="inherit"
-            fullWidth
-            onClick={() => navigate('/products/newuser')}
             startIcon={<Iconify icon="eva:plus-fill" />}
+            onClick={() => {
+              setEditingUser(null);
+              setOpenDialog(true);
+            }}
           >
             New User
           </Button>
         </Box>
       )}
+
+      <UserFormDialog
+        open={openDialog}
+        onClose={() => setOpenDialog(false)}
+        existingData={editingUser}
+        onSaved={() => {
+          setOpenDialog(false);
+          window.location.reload();
+        }}
+      />
     </Container>
   );
 }

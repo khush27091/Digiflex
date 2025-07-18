@@ -7,12 +7,11 @@ import AuthGuard from './AuthGuard';
 import GuestGuard from './GuestGuard';
 
 export const IndexPage = lazy(() => import('src/pages/app'));
-export const UserPage = lazy(() => import('src/pages/user'));
+export const MeasurementPage = lazy(() => import('src/pages/user'));
 export const LoginPage = lazy(() => import('src/pages/login'));
-export const ProductsPage = lazy(() => import('src/pages/products'));
+export const UserPage = lazy(() => import('src/pages/products'));
 export const Page404 = lazy(() => import('src/pages/page-not-found'));
-export const UserAddPage = lazy(() => import('src/sections/Measurement/measurement-form-page'));
-export const UserManagementPage = lazy(() => import('src/sections/User Master/user-form-page'));
+export const MeasurementAddPage = lazy(() => import('src/sections/Measurement/measurement-form-page'));
 
 
 // ----------------------------------------------------------------------
@@ -34,15 +33,14 @@ export default function Router() {
     {
       path: 'user',
       children: [
-        { element: <UserPage />, index: true },
-        { path: 'new', element: <UserAddPage /> },  // ✅ Now this is /user/new
+        { element: <MeasurementPage />, index: true },
+        { path: 'new', element: <MeasurementAddPage /> },  // ✅ Now this is /user/new
       ],
     },
     {
       path: 'products',
       children: [
-        { element: <ProductsPage />, index: true },
-        { path: 'newuser', element: <UserManagementPage /> },  // ✅ Now this is /user/new
+        { element: <UserPage />, index: true },
       ],
     },
   ],
