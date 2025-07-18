@@ -53,20 +53,23 @@ export default function UserTableRow({
     handleCloseMenu();
   };
 
-    const isMobile = /iPhone|Android|iPad/i.test(navigator.userAgent);
-const baseURL = isMobile
-  ? 'https://api.whatsapp.com/send'
-  : 'https://web.whatsapp.com/send';
+  const isMobile = /iPhone|Android|iPad/i.test(navigator.userAgent);
+  const baseURL = isMobile
+    ? 'https://api.whatsapp.com/send'
+    : 'https://web.whatsapp.com/send';
 
-const phone = '91' + row.selectedUser.phone.replace(/[^\d]/g, '');
-const message = `Hello ${row.selectedUser.firstName} ${row.selectedUser.lastName},\n\n` +
-  `Here are your measurement appointment details:\n` +
-  `👤 Name: ${row.name}\n` +
-  `📞 Phone: ${row.mobile}\n` +
-  `🏠 Address: ${row.address || 'N/A'}\n` +
-  `📅 Date: ${row.measurementDate || 'N/A'}`;
+  let whatsappLink = '';
 
-const whatsappLink = `${baseURL}?phone=${phone}&text=${encodeURIComponent(message)}`;
+  if (row.selectedUser?.phone) {
+    const phone = '91' + row.selectedUser.phone.replace(/[^\d]/g, '');
+    const message = `Hello ${row.selectedUser.firstName} ${row.selectedUser.lastName},\n\n` +
+      `Here are your measurement appointment details:\n` +
+      `👤 Name: ${row.name}\n` +
+      `📞 Phone: ${row.mobile}\n` +
+      `🏠 Address: ${row.address || 'N/A'}\n` +
+      `📅 Date: ${row.measurementDate || 'N/A'}`;
+    whatsappLink = `${baseURL}?phone=${phone}&text=${encodeURIComponent(message)}`;
+  }
 
 
 
@@ -105,15 +108,17 @@ const whatsappLink = `${baseURL}?phone=${phone}&text=${encodeURIComponent(messag
       >
 
 
-       <MenuItem
-  component="a"
-  href={whatsappLink}
-  target="_blank"
-  rel="noopener noreferrer"
->
-  <Iconify icon="ic:baseline-whatsapp" sx={{ mr: 2, color: 'green' }} />
-  WhatsApp
-</MenuItem>
+        {whatsappLink && (
+          <MenuItem
+            component="a"
+            href={whatsappLink}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Iconify icon="ic:baseline-whatsapp" sx={{ mr: 2, color: 'green' }} />
+            WhatsApp
+          </MenuItem>
+        )}
 
 
         <MenuItem
