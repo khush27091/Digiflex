@@ -165,7 +165,15 @@ export default function LoginView() {
         }}
       />
 
-      <Stack alignItems="center" justifyContent="center" sx={{ height: 1 }}>
+      <Stack
+  alignItems="center"
+  justifyContent="center"
+  sx={{
+    height: 1,
+    px: { xs: 2, sm: 3, md: 0 }, // Horizontal padding on mobile
+    py: { xs: 2, sm: 3, md: 0 }, // Optional: Vertical padding
+  }}
+>
         <Card
           sx={{
             p: 5,
