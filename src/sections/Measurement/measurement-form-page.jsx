@@ -1000,7 +1000,6 @@ export default function UserFormPage() {
                 variant="outlined"
                 color="error"
                 onClick={() => handleRemoveRow(index)}
-                disabled={formValues.areas.length === 1}
               >
                 Delete
               </Button>

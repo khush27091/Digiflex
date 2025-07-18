@@ -89,6 +89,11 @@ export default function UserCard({ row, handleDelete }) {
               <Typography variant="body2" color="text.secondary">
                 Mobile: {row.mobile}
               </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Assigned User: {row.selectedUser
+                  ? `${row.selectedUser.firstName} ${row.selectedUser.lastName}`
+                  : '-'}
+              </Typography>
             </Box>
 
             <IconButton onClick={handleOpenMenu}>
