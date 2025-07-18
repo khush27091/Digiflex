@@ -9,7 +9,7 @@ import GuestGuard from './GuestGuard';
 export const IndexPage = lazy(() => import('src/pages/app'));
 export const MeasurementPage = lazy(() => import('src/pages/Measurement'));
 export const LoginPage = lazy(() => import('src/pages/login'));
-export const UserPage = lazy(() => import('src/pages/User'));
+export const UserPage = lazy(() => import('src/pages/user'));
 export const Page404 = lazy(() => import('src/pages/page-not-found'));
 export const MeasurementAddPage = lazy(() => import('src/sections/Measurement/measurement-form-page'));
 

@@ -4,7 +4,7 @@ import { UserView } from 'src/sections/Measurement/view';
 
 // ----------------------------------------------------------------------
 
-export default function UserPage() {
+export default function MeasurementPage() {
   return (
     <>
       <Helmet>

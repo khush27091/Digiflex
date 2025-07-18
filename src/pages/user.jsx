@@ -4,7 +4,7 @@ import { ProductsView } from 'src/sections/User Master/view';
 
 // ----------------------------------------------------------------------
 
-export default function ProductsPage() {
+export default function userPage() {
   return (
     <>
       <Helmet>
