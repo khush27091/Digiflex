@@ -3,15 +3,24 @@ import { useState } from 'react';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import {
-  Box,  Card,Table,Stack,Button, Container,TableBody,Typography ,   
-  TableContainer, TablePagination, 
+  Box,
+  Card,
+  Table,
+  Stack,
+  Button, 
+  TableRow, 
+  TableCell,
+  Container,
+  TableBody,
+  Typography ,   
+  TableContainer, 
+  TablePagination,
 } from '@mui/material';
 
 import Iconify from 'src/components/iconify';
 import Scrollbar from 'src/components/scrollbar';
 
 import UserCard from '../UserCard';
-import TableNoData from '../table-no-data';
 import UserTableRow from '../user-table-row';
 import UserFormDialog from '../user-form-page';
 import UserTableHead from '../user-table-head';
@@ -72,7 +81,6 @@ export default function UserPage() {
     filterEndDate,
   });
 
-  const notFound = !dataFiltered.length && (filterName || filterStartDate || filterEndDate);
 
   return (
     <Container maxWidth="xl">
@@ -144,31 +152,42 @@ export default function UserPage() {
                     { id: '' },
                   ]}
                 />
-                <TableBody>
-                  {dataFiltered
-                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                    .map((row) => (
-                      <UserTableRow
-                        key={row.id}
-                        row={row}
-                        selected={selected.includes(row.name)}
-                        handleClick={() =>
-                          setSelected((prev) =>
-                            prev.includes(row.name)
-                              ? prev.filter((s) => s !== row.name)
-                              : [...prev, row.name]
-                          )
-                        }
-                        handleDelete={handleDelete}
-                        onEditUser={handleEditUser}
-                      />
-                    ))}
-                  <TableEmptyRows
-                    height={77}
-                    emptyRows={emptyRows(page, rowsPerPage, rows.length)}
-                  />
-                  {notFound && <TableNoData query={filterName} />}
-                </TableBody>
+<TableBody>
+  {dataFiltered.length > 0 ? (
+    dataFiltered
+      .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+      .map((row) => (
+        <UserTableRow
+          key={row.id}
+          row={row}
+          selected={selected.includes(row.name)}
+          handleClick={() =>
+            setSelected((prev) =>
+              prev.includes(row.name)
+                ? prev.filter((s) => s !== row.name)
+                : [...prev, row.name]
+            )
+          }
+          handleDelete={handleDelete}
+          onEditUser={handleEditUser}
+        />
+      ))
+  ) : (
+    <TableRow>
+      <TableCell colSpan={4} align="center" sx={{ py: 5 }}>
+        <Typography variant="h6">No Data</Typography>
+        <Typography variant="body2" color="text.secondary">
+          Add some users.
+        </Typography>
+      </TableCell>
+    </TableRow>
+  )}
+  <TableEmptyRows
+    height={77}
+    emptyRows={emptyRows(page, rowsPerPage, rows.length)}
+  />
+</TableBody>
+
               </Table>
             </TableContainer>
           )}
