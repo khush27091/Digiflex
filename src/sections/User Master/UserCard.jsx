@@ -47,8 +47,9 @@ export default function UserCard({ row, handleDelete,onEditUser }) {
     <Card sx={{ p: 2 }}>
       <Stack direction="row" justifyContent="space-between" alignItems="center">
         <Stack>
-          <Typography variant="subtitle1">{row.name}</Typography>
-          <Typography variant="body2">Mobile: {row.mobile}</Typography>
+          <Typography variant="subtitle1">{row.first_name}  {row.last_name}</Typography>
+          <Typography variant="body2">Mobile: {row.phone}</Typography>
+          <Typography variant="body2">Role: {row.role}</Typography>
           <Typography variant="body2">Email: {row.email ? row.email : "-"}</Typography>
         </Stack>
 

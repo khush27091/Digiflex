@@ -51,9 +51,10 @@ export default function UserTableRow({
   return (
     <>
       <TableRow hover tabIndex={-1} role="checkbox" selected={selected}>
-        <TableCell>{row.firstName}{row.lastName} </TableCell>
+        <TableCell>{row.first_name}  {row.last_name} </TableCell>
         <TableCell>{row.phone}</TableCell>
         <TableCell>{row.email ? row.email : "-"} </TableCell>
+        <TableCell>{row.role} </TableCell>
 
         <TableCell align="right">
           <IconButton onClick={handleOpenMenu}>

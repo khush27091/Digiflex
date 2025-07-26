@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
@@ -7,13 +7,13 @@ import {
   Card,
   Table,
   Stack,
-  Button, 
-  TableRow, 
+  Button,
+  TableRow,
   TableCell,
   Container,
   TableBody,
-  Typography ,   
-  TableContainer, 
+  Typography,
+  TableContainer,
   TablePagination,
 } from '@mui/material';
 
@@ -40,29 +40,39 @@ export default function UserPage() {
 
   const [openDialog, setOpenDialog] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
+  const [users, setUsers] = useState([]);
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
-  const savedData = JSON.parse(sessionStorage.getItem('masteruser') || '[]');
+  const fetchUsers = async () => {
+    try {
+      const res = await fetch('/api/users');
+      const data = await res.json();
+      setUsers(data);
+    } catch (error) {
+      console.error('Failed to fetch users:', error);
+    }
+  };
 
-  const rows = savedData.map((item, index) => ({
-    id: index + 1,
-    name: `${item.firstName} ${item.lastName}`,
-    mobile: item.phone,
-    email: item.email || '',
-    ...item,
-  }));
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
   const handleEditUser = (user) => {
     setEditingUser(user);
     setOpenDialog(true);
   };
 
-  const handleDelete = (name) => {
-    const updated = savedData.filter((u) => `${u.firstName} ${u.lastName}` !== name);
-    sessionStorage.setItem('masteruser', JSON.stringify(updated));
-    window.location.reload();
+  const handleDelete = async (id) => {
+    try {
+      await fetch(`/api/users/${id}`, {
+        method: 'DELETE',
+      });
+      fetchUsers(); // Refresh list
+    } catch (error) {
+      console.error('Failed to delete user:', error);
+    }
   };
 
   const handleSort = (e, id) => {
@@ -74,13 +84,12 @@ export default function UserPage() {
   };
 
   const dataFiltered = applyFilter({
-    inputData: rows,
+    inputData: users,
     comparator: getComparator(order, orderBy),
     filterName,
     filterStartDate,
     filterEndDate,
   });
-
 
   return (
     <Container maxWidth="xl">
@@ -120,9 +129,9 @@ export default function UserPage() {
                   .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                   .map((row) => (
                     <UserCard
-                      key={row.id}
+                      key={row.user_id}
                       row={row}
-                      handleDelete={handleDelete}
+                      handleDelete={() => handleDelete(row.user_id)}
                       onEditUser={handleEditUser}
                     />
                   ))
@@ -139,55 +148,54 @@ export default function UserPage() {
                 <UserTableHead
                   order={order}
                   orderBy={orderBy}
-                  rowCount={rows.length}
+                  rowCount={users.length}
                   numSelected={selected.length}
                   onRequestSort={handleSort}
                   onSelectAllClick={(e) =>
-                    setSelected(e.target.checked ? rows.map((r) => r.name) : [])
+                    setSelected(e.target.checked ? users.map((r) => r.firstName + ' ' + r.lastName) : [])
                   }
                   headLabel={[
                     { id: 'name', label: 'Name' },
                     { id: 'mobile', label: 'Mobile' },
                     { id: 'email', label: 'Email' },
+                    { id: 'role', label: 'Role' },
                     { id: '' },
                   ]}
                 />
-<TableBody>
-  {dataFiltered.length > 0 ? (
-    dataFiltered
-      .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-      .map((row) => (
-        <UserTableRow
-          key={row.id}
-          row={row}
-          selected={selected.includes(row.name)}
-          handleClick={() =>
-            setSelected((prev) =>
-              prev.includes(row.name)
-                ? prev.filter((s) => s !== row.name)
-                : [...prev, row.name]
-            )
-          }
-          handleDelete={handleDelete}
-          onEditUser={handleEditUser}
-        />
-      ))
-  ) : (
-    <TableRow>
-      <TableCell colSpan={4} align="center" sx={{ py: 5 }}>
-        <Typography variant="h6">No Data</Typography>
-        <Typography variant="body2" color="text.secondary">
-          Add some users.
-        </Typography>
-      </TableCell>
-    </TableRow>
-  )}
-  <TableEmptyRows
-    height={77}
-    emptyRows={emptyRows(page, rowsPerPage, rows.length)}
-  />
-</TableBody>
 
+                <TableBody>
+                  {dataFiltered.length > 0 ? (
+                    dataFiltered
+                      .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                      .map((row) => (
+                        <UserTableRow
+                          key={row.user_id}
+                          row={row}
+                          selected={selected.includes(row.firstName + ' ' + row.lastName)}
+                          handleClick={() =>
+                            setSelected((prev) =>
+                              prev.includes(row.firstName + ' ' + row.lastName)
+                                ? prev.filter((s) => s !== row.firstName + ' ' + row.lastName)
+                                : [...prev, row.firstName + ' ' + row.lastName]
+                            )
+                          }
+                          handleDelete={() => handleDelete(row.user_id)}
+                          onEditUser={handleEditUser}
+                        />
+                      ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={4} align="center" sx={{ py: 5 }}>
+                        <Typography variant="h6">No Data</Typography>
+                        <Typography variant="body2" color="text.secondary">Add some users.</Typography>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                  <TableEmptyRows
+                    height={77}
+                    emptyRows={emptyRows(page, rowsPerPage, users.length)}
+                  />
+                </TableBody>
               </Table>
             </TableContainer>
           )}
@@ -196,7 +204,7 @@ export default function UserPage() {
         <TablePagination
           page={page}
           component="div"
-          count={rows.length}
+          count={users.length}
           rowsPerPage={rowsPerPage}
           rowsPerPageOptions={[5, 10, 25]}
           onPageChange={(e, newPage) => setPage(newPage)}
@@ -230,7 +238,7 @@ export default function UserPage() {
         existingData={editingUser}
         onSaved={() => {
           setOpenDialog(false);
-          window.location.reload();
+          fetchUsers(); // ✅ Refresh user list after save
         }}
       />
     </Container>
