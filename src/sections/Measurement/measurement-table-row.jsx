@@ -48,7 +48,7 @@ export default function UserTableRow({
   };
 
   const onDeleteConfirmed = () => {
-    handleDelete(row.name); // ✅ use row.name!
+    handleDelete(row.id); 
     handleCloseDialog();
     handleCloseMenu();
   };
@@ -76,16 +76,16 @@ export default function UserTableRow({
   return (
     <>
       <TableRow hover tabIndex={-1} role="checkbox" selected={selected}>
-        <TableCell>{row.name}</TableCell>
-        <TableCell>{row.mobile}</TableCell>
+        <TableCell>{row.customer_name}</TableCell>
+        <TableCell>{row.customer_mobile}</TableCell>
         <TableCell>
-          {row.measurementDate
-            ? dayjs(row.measurementDate, 'YYYY-MM-DD').format('DD/MM/YYYY')
+          {row.measurement_date
+            ? dayjs(row.measurement_date  , 'YYYY-MM-DD').format('DD/MM/YYYY')
             : ''}
         </TableCell>
         <TableCell>
-          {row.selectedUser
-            ? `${row.selectedUser.firstName} ${row.selectedUser.lastName}`
+          {row.user_id
+            ? `${row.user_id}`
             : '-'}
         </TableCell>
 

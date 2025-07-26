@@ -1,18 +1,21 @@
-import { useState } from 'react';
+
+import {useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { Box } from '@mui/material';
-import Card from '@mui/material/Card';
-import Stack from '@mui/material/Stack';
-import Table from '@mui/material/Table';
-import Button from '@mui/material/Button';
-import Container from '@mui/material/Container';
 import { useTheme } from '@mui/material/styles';
-import TableBody from '@mui/material/TableBody';
-import Typography from '@mui/material/Typography';
 import useMediaQuery from '@mui/material/useMediaQuery';
-import TableContainer from '@mui/material/TableContainer';
-import TablePagination from '@mui/material/TablePagination';
+import {
+  Box,
+  Card,
+  Stack,
+  Table,
+  Button,
+  Container,
+  TableBody,
+  Typography,
+  TableContainer,
+  TablePagination,
+} from '@mui/material';
 
 import Iconify from 'src/components/iconify';
 import Scrollbar from 'src/components/scrollbar';
@@ -25,97 +28,57 @@ import UserTableHead from '../measurement-table-head';
 import UserTableToolbar from '../measurement-table-toolbar';
 import { emptyRows, applyFilter, getComparator } from '../utils';
 
-
-// ----------------------------------------------------------------------
-
 export default function UserPage() {
+  const [data, setData] = useState([]);
   const [page, setPage] = useState(0);
   const [order, setOrder] = useState('asc');
   const [selected, setSelected] = useState([]);
   const [orderBy, setOrderBy] = useState('name');
   const [filterName, setFilterName] = useState('');
   const [rowsPerPage, setRowsPerPage] = useState(5);
-
   const [filterStartDate, setFilterStartDate] = useState(null);
   const [filterEndDate, setFilterEndDate] = useState(null);
 
-  const navigate = useNavigate();
-
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const navigate = useNavigate();
 
-  const savedForms = sessionStorage.getItem('userForms');
-  const savedData = savedForms ? JSON.parse(savedForms) : [];
+  useEffect(() => {
+    fetchMeasurements();
+  }, []);
 
-  const rows = savedData.map((item, index) => ({
-    id: index + 1,
+  const fetchMeasurements = async () => {
+    try {
+      const res = await fetch('http://localhost:3001/api/measurements');
+      const json = await res.json();
+      setData(json);
+    } catch (err) {
+      console.error('Failed to fetch measurements', err);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      const res = await fetch(`http://localhost:3001/api/measurements/${id}`, {
+        method: 'DELETE',
+      });
+      if (!res.ok) throw new Error('Failed to delete');
+      fetchMeasurements();
+    } catch (err) {
+      console.error(err);
+      alert('Failed to delete. Check console.');
+    }
+  };
+
+  const rows = data.map((item, index) => ({
+    id: item.id || index + 1,
     ...item,
   }));
 
   const handleSort = (event, id) => {
     const isAsc = orderBy === id && order === 'asc';
-    if (id !== '') {
-      setOrder(isAsc ? 'desc' : 'asc');
-      setOrderBy(id);
-    }
-  };
-
-  const handleSelectAllClick = (event) => {
-    if (event.target.checked) {
-      const newSelecteds = rows.map((n) => n.name);
-      setSelected(newSelecteds);
-      return;
-    }
-    setSelected([]);
-  };
-
-  const handleClick = (event, name) => {
-    const selectedIndex = selected.indexOf(name);
-    let newSelected = [];
-    if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selected, name);
-    } else if (selectedIndex === 0) {
-      newSelected = newSelected.concat(selected.slice(1));
-    } else if (selectedIndex === selected.length - 1) {
-      newSelected = newSelected.concat(selected.slice(0, -1));
-    } else if (selectedIndex > 0) {
-      newSelected = newSelected.concat(
-        selected.slice(0, selectedIndex),
-        selected.slice(selectedIndex + 1)
-      );
-    }
-    setSelected(newSelected);
-  };
-
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (event) => {
-    setPage(0);
-    setRowsPerPage(parseInt(event.target.value, 10));
-  };
-
-  const handleFilterByName = (event) => {
-    setPage(0);
-    setFilterName(event.target.value);
-  };
-
-  const handleFilterByStartDate = (newDate) => {
-    setPage(0);
-    setFilterStartDate(newDate);
-  };
-
-  const handleFilterByEndDate = (newDate) => {
-    setPage(0);
-    setFilterEndDate(newDate);
-  };
-
-  const handleDelete = (name) => {
-    const forms = savedForms ? JSON.parse(savedForms) : [];
-    const updatedForms = forms.filter((form) => form.name !== name);
-    sessionStorage.setItem('userForms', JSON.stringify(updatedForms));
-    window.location.reload();
+    setOrder(isAsc ? 'desc' : 'asc');
+    setOrderBy(id);
   };
 
   const dataFiltered = applyFilter({
@@ -126,22 +89,18 @@ export default function UserPage() {
     filterEndDate,
   });
 
-  const notFound =
-    (!dataFiltered.length &&
-      (!!filterName || !!filterStartDate || !!filterEndDate)) ||
-    rows.length === 0;
+  const notFound = !dataFiltered.length && (!!filterName || !!filterStartDate || !!filterEndDate);
 
   return (
     <Container maxWidth="xl">
-      <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
+      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={5}>
         <Typography variant="h4">Measurements</Typography>
-
-       {!isMobile && (
+        {!isMobile && (
           <Button
             variant="contained"
             color="inherit"
-            onClick={() => navigate('/user/new')}
             startIcon={<Iconify icon="eva:plus-fill" />}
+            onClick={() => navigate('/user/new')}
           >
             New Measurement
           </Button>
@@ -152,11 +111,11 @@ export default function UserPage() {
         <UserTableToolbar
           numSelected={selected.length}
           filterName={filterName}
-          onFilterName={handleFilterByName}
+          onFilterName={(e) => setFilterName(e.target.value)}
           filterStartDate={filterStartDate}
-          onFilterStartDate={handleFilterByStartDate}
+          onFilterStartDate={setFilterStartDate}
           filterEndDate={filterEndDate}
-          onFilterEndDate={handleFilterByEndDate}
+          onFilterEndDate={setFilterEndDate}
         />
 
         <Scrollbar>
@@ -166,22 +125,15 @@ export default function UserPage() {
                 dataFiltered
                   .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                   .map((row) => (
-                    <UserCard key={row.id} row={row} handleDelete={handleDelete} />
+                    <UserCard key={row.id} row={row} handleDelete={() => handleDelete(row.id)} />
                   ))
               ) : (
-                 <Stack
-    alignItems="center"
-    justifyContent="center"
-    sx={{ py: 5, width: '100%' }}
-  >
-    <Typography variant="h6" gutterBottom>
-      <b>No Data</b>
-    </Typography>
-    <Typography variant="body2" sx={{ color: 'text.secondary', textAlign: 'center' }}>
-      There is no data available.<br />
-      Please add new measurements.
-    </Typography>
-  </Stack>
+                <Stack alignItems="center" justifyContent="center" sx={{ py: 5 }}>
+                  <Typography variant="h6">No Data</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Please add new measurements.
+                  </Typography>
+                </Stack>
               )}
             </Stack>
           ) : (
@@ -193,7 +145,9 @@ export default function UserPage() {
                   rowCount={rows.length}
                   numSelected={selected.length}
                   onRequestSort={handleSort}
-                  onSelectAllClick={handleSelectAllClick}
+                  onSelectAllClick={(e) =>
+                    setSelected(e.target.checked ? rows.map((r) => r.name) : [])
+                  }
                   headLabel={[
                     { id: 'name', label: 'Name' },
                     { id: 'mobile', label: 'Mobile' },
@@ -209,17 +163,18 @@ export default function UserPage() {
                       <UserTableRow
                         key={row.id}
                         row={row}
-                        selected={selected.indexOf(row.name) !== -1}
-                        handleClick={(event) => handleClick(event, row.name)}
-                        handleDelete={handleDelete}
+                        selected={selected.includes(row.name)}
+                        handleClick={(e) =>
+                          setSelected((prev) =>
+                            prev.includes(row.name)
+                              ? prev.filter((s) => s !== row.name)
+                              : [...prev, row.name]
+                          )
+                        }
+                        handleDelete={() => handleDelete(row.id)}
                       />
                     ))}
-
-                  <TableEmptyRows
-                    height={77}
-                    emptyRows={emptyRows(page, rowsPerPage, rows.length)}
-                  />
-
+                  <TableEmptyRows height={77} emptyRows={emptyRows(page, rowsPerPage, rows.length)} />
                   {notFound && <TableNoData query={filterName} />}
                 </TableBody>
               </Table>
@@ -232,27 +187,23 @@ export default function UserPage() {
           component="div"
           count={rows.length}
           rowsPerPage={rowsPerPage}
-          onPageChange={handleChangePage}
           rowsPerPageOptions={[5, 10, 25]}
-          onRowsPerPageChange={handleChangeRowsPerPage}
+          onPageChange={(e, newPage) => setPage(newPage)}
+          onRowsPerPageChange={(e) => {
+            setRowsPerPage(parseInt(e.target.value, 10));
+            setPage(0);
+          }}
         />
       </Card>
-       {isMobile && (
-        <Box
-          sx={{
-            position: 'fixed',
-            bottom: 16,
-            left: 16,
-            right: 16,
-            zIndex: 1100,
-          }}
-        >
+
+      {isMobile && (
+        <Box sx={{ position: 'fixed', bottom: 16, left: 16, right: 16 }}>
           <Button
+            fullWidth
             variant="contained"
             color="inherit"
-            fullWidth
-            onClick={() => navigate('/user/new')}
             startIcon={<Iconify icon="eva:plus-fill" />}
+            onClick={() => navigate('/user/new')}
           >
             New Measurement
           </Button>

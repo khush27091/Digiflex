@@ -1,3 +1,4 @@
+import dayjs from 'dayjs';
 import { useState } from 'react';
 import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
@@ -43,7 +44,7 @@ export default function UserCard({ row, handleDelete }) {
   };
 
   const onDeleteConfirmed = () => {
-    handleDelete(row.name);
+    handleDelete(row.id);
     handleCloseDialog();
     handleCloseMenu();
   };
@@ -82,16 +83,18 @@ export default function UserCard({ row, handleDelete }) {
         <Stack spacing={2}>
           <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
             <Box>
-              <Typography variant="h6">{row.name}</Typography>
+              <Typography variant="h6">{row.customer_name}</Typography>
               <Typography variant="body2" color="text.secondary">
-                Measurement Date: {row.measurementDate}
+                Measurement Date: {row.measurement_date
+                            ? dayjs(row.measurement_date  , 'YYYY-MM-DD').format('DD/MM/YYYY')
+                            : ''}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Mobile: {row.mobile}
+                Mobile: {row.customer_mobile}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Assigned User: {row.selectedUser
-                  ? `${row.selectedUser.firstName} ${row.selectedUser.lastName}`
+                Assigned User: {row.user_id
+                  ? `${row.user_id} `
                   : '-'}
               </Typography>
             </Box>
