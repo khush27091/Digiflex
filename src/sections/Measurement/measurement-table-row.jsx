@@ -1,6 +1,6 @@
 import dayjs from 'dayjs';
-import { useState } from 'react';
 import PropTypes from 'prop-types';
+import { useState , useEffect} from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import Button from '@mui/material/Button';
@@ -26,8 +26,8 @@ export default function UserTableRow({
 }) {
   const [openMenu, setOpenMenu] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
+  const [userDetails, setUserDetails] = useState(null);
 
-  console.log('UserTableRow', row);
 
   const navigate = useNavigate();
 
@@ -53,24 +53,45 @@ export default function UserTableRow({
     handleCloseMenu();
   };
 
+  useEffect(() => {
+  const fetchUserDetails = async () => {
+    if (row.user_id) {
+      try {
+        const response = await fetch(`http://localhost:3001/api/users/${row.user_id}`);
+        if (!response.ok) throw new Error('Failed to fetch user');
+        const data = await response.json();
+        setUserDetails(data);
+      } catch (error) {
+        console.error('Error fetching user:', error);
+      }
+    }
+  };
+
+  fetchUserDetails();
+}, [row.user_id]);
+
+
   const isMobile = /iPhone|Android|iPad/i.test(navigator.userAgent);
   const baseURL = isMobile
     ? 'https://api.whatsapp.com/send'
     : 'https://web.whatsapp.com/send';
 
-  let whatsappLink = '';
+let whatsappLink = '';
 
-  if (row.selectedUser?.phone) {
-    const phone = '91' + row.selectedUser.phone.replace(/[^\d]/g, '');
-    const message = `Hello ${row.selectedUser.firstName} ${row.selectedUser.lastName},\n\n` +
-      `Here are your measurement appointment details:\n` +
-      `👤 Name: ${row.name}\n` +
-      `📞 Phone: ${row.mobile}\n` +
-      `🏠 Address: ${row.address || 'N/A'}\n` +
-      `📅 Date: ${row.measurementDate || 'N/A'}`;
-    whatsappLink = `${baseURL}?phone=${phone}&text=${encodeURIComponent(message)}`;
-  }
-
+if (userDetails?.phone) {
+  const phone = '91' + userDetails.phone.replace(/[^\d]/g, '');
+  const message = `Hello ${userDetails.first_name} ${userDetails.last_name},\n\n` +
+    `Here are your measurement appointment details:\n` +
+    `👤 Name: ${row.customer_name}\n` +
+    `📞 Phone: ${row.customer_mobile}\n` +
+    `🏠 Address: ${row.customer_address || 'N/A'}\n` +
+    `📅 Date: ${
+      row.measurement_date
+        ? dayjs(row.measurement_date).format('DD/MM/YYYY')
+        : 'N/A'
+    }`;
+  whatsappLink = `${baseURL}?phone=${phone}&text=${encodeURIComponent(message)}`;
+}
 
 
   return (
@@ -84,10 +105,10 @@ export default function UserTableRow({
             : ''}
         </TableCell>
         <TableCell>
-          {row.user_id
-            ? `${row.user_id}`
-            : '-'}
-        </TableCell>
+  {userDetails
+    ? `${userDetails.first_name} ${userDetails.last_name} (${userDetails.phone})`
+    : 'Loading...'}
+</TableCell>
 
         <TableCell align="right">
           <IconButton onClick={handleOpenMenu}>
@@ -124,7 +145,7 @@ export default function UserTableRow({
         <MenuItem
           onClick={() =>
             navigate('/user/new', {
-              state: { formData: row }, // ✅ pass full row
+              state: { id: row.id }, // ✅ pass full row
             })
           }
         >

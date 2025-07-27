@@ -56,28 +56,28 @@ export function applyFilter({
   if (filterName) {
     filtered = filtered.filter(
       (user) =>
-        user.name?.toLowerCase().includes(filterName.toLowerCase()) ||
-        user.mobile?.toLowerCase().includes(filterName.toLowerCase()) ||
-        user.measurementDate?.toLowerCase().includes(filterName.toLowerCase())
+        user.customer_name?.toLowerCase().includes(filterName.toLowerCase()) ||
+        user.customer_mobile?.toLowerCase().includes(filterName.toLowerCase()) ||
+        user.customer_address?.toLowerCase().includes(filterName.toLowerCase())
     );
   }
 
-  if (filterStartDate || filterEndDate) {
-    filtered = filtered.filter((user) => {
-      if (!user.measurementDate) return false;
+ if (filterStartDate || filterEndDate) {
+  filtered = filtered.filter((user) => {
+    if (!user.measurement_date) return false;
 
-      const userDate = dayjs(user.measurementDate).startOf('day');
-      const startDate = filterStartDate ? dayjs(filterStartDate).startOf('day') : null;
-      const endDate = filterEndDate ? dayjs(filterEndDate).endOf('day') : null;
+    const userDate = dayjs(user.measurement_date).startOf('day');
+    const startDate = filterStartDate ? dayjs(filterStartDate).startOf('day') : null;
+    const endDate = filterEndDate ? dayjs(filterEndDate).endOf('day') : null;
 
-      if (!userDate.isValid()) return false;
+    if (!userDate.isValid()) return false;
 
-      const afterStart = startDate ? userDate.isSameOrAfter(startDate) : true;
-      const beforeEnd = endDate ? userDate.isSameOrBefore(endDate) : true;
+    const afterStart = startDate ? userDate.isSameOrAfter(startDate) : true;
+    const beforeEnd = endDate ? userDate.isSameOrBefore(endDate) : true;
 
-      return afterStart && beforeEnd;
-    });
-  }
+    return afterStart && beforeEnd;
+  });
+}
   
 
   return filtered;

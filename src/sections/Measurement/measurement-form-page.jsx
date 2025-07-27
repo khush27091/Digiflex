@@ -23,64 +23,85 @@ import Iconify from 'src/components/iconify';
 export default function UserFormPage() {
   const navigate = useNavigate();
   const location = useLocation();
-
-  const today = new Date().toISOString().split('T')[0];
-  const existingData = location.state?.formData;
-
-  const staticUsers = [
-    {
-      firstName: 'Lewis',
-      lastName: 'Hamilton',
-      email: '',
-      phone: '1234567890',
-    },
-    {
-      firstName: 'John',
-      lastName: 'Doe',
-      email: '',
-      phone: '9876543210',
-    },
-  ];
-
-  const sessionUsers = JSON.parse(sessionStorage.getItem('masteruser') || '[]');
-  const userOptions = [...staticUsers, ...sessionUsers];
-
-  const [formValues, setFormValues] = useState(() => {
-    if (existingData) {
-      const matchedUser = userOptions.find(
-        (user) => user.phone === existingData?.selectedUser?.phone
-      );
-
-      return {
-        id: existingData.id || Date.now(), // ✅ Include ID
-        name: existingData.name || '',
-        mobile: existingData.mobile || '',
-        address: existingData.address || '',
-        measurementDate: existingData.measurementDate || today,
-        selectedUser: matchedUser || null,
-        areas: existingData.areas?.length
-          ? existingData.areas.map((area) => ({
-              ...area,
-              photos:
-                area.photos?.map((p) => ({
-                  preview: p.preview,
-                  file: null,
-                })) || [],
-            }))
-          : [],
-      };
+  const [existingData, setExistingData] = useState([]);
+  const measurementId = location.state?.id;
+  useEffect(() => {
+    if (measurementId) {
+      fetch(`http://localhost:3001/api/measurements/${measurementId}`)
+        .then((res) => res.json())
+        .then((data) => {
+          setExistingData(data);
+        })
+        .catch((err) => {
+          console.error('Failed to fetch measurement:', err);
+        });
     }
+  }, [measurementId]);
 
-    return {
-      id: Date.now(), // ✅ Assign new ID for new entries
-      name: '',
-      mobile: '',
-      address: '',
-      measurementDate: today,
-      selectedUser: null,
-      areas: [],
-    };
+
+  const today = dayjs().format('YYYY-MM-DD');
+  const [formValues, setFormValues] = useState({
+    id: Date.now(),
+    name: '',
+    mobile: '',
+    address: '',
+    measurementDate: today,
+    selectedUser: null,
+    areas: [],
   });
+
+  useEffect(() => {
+    if (existingData && existingData.id) {
+      const matchedUser =
+        existingData.selectedUser || (existingData.user_id ? { id: existingData.user_id } : null);
+
+      const updatedFormValues = {
+        id: existingData.id,
+        name: existingData.customer_name || '',
+        mobile: existingData.customer_mobile || '',
+        address: existingData.customer_address || '',
+        measurementDate:
+          typeof existingData.measurement_date === 'string'
+            ? existingData.measurement_date.slice(0, 10)
+            : today,
+        selectedUser: matchedUser,
+        areas: (existingData.areas || []).map((area) => ({
+          areaName: area.area_name || '',
+          height: area.height?.toString?.() || '',
+          width: area.width?.toString?.() || '',
+          notes: area.notes || '',
+          photos: (area.photo_urls || []).map((url) => ({
+            preview: url.startsWith('http') ? url : `http://localhost:3001${url}`,
+            file: null,
+          })),
+        })),
+      };
+
+      setFormValues(updatedFormValues);
+    }
+  }, [existingData, today]);
+
+  useEffect(() => {
+    const fetchSelectedUser = async () => {
+      if (existingData?.user_id) {
+        try {
+          const res = await fetch(`http://localhost:3001/api/users/${existingData.user_id}`);
+          if (!res.ok) throw new Error('Failed to fetch selected user');
+          const userData = await res.json();
+          setFormValues(prev => ({
+            ...prev,
+            selectedUser: userData,
+          }));
+        } catch (error) {
+          console.error('Error fetching selected user:', error);
+        }
+      }
+    };
+
+    fetchSelectedUser();
+  }, [existingData]);
+
+
 
   const [errors, setErrors] = useState({
     name: '',
@@ -94,6 +115,26 @@ export default function UserFormPage() {
   const videoRef = useRef();
   const canvasRef = useRef();
   const [stream, setStream] = useState(null);
+  const [userOptions, setUserOptions] = useState([]);
+
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await fetch('http://localhost:3001/api/users');
+        if (!response.ok) throw new Error('Failed to fetch users');
+        const data = await response.json();
+        setUserOptions(data);
+      } catch (error) {
+        console.error('Error fetching users:', error);
+      }
+    };
+
+    fetchUsers();
+  }, []);
+
+
+
 
   useEffect(() => {
     const serializable = {
@@ -225,41 +266,70 @@ export default function UserFormPage() {
     setErrors({ ...errors, areas: areaErrors });
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validateForm()) return;
 
-    if (formValues.selectedUser) {
-      const currentMasterUsers = JSON.parse(sessionStorage.getItem('masteruser') || '[]');
-      const isAlreadySaved = currentMasterUsers.some(
-        (user) => user.phone === formValues.selectedUser.phone
+    try {
+      const areasWithUploadedPhotos = await Promise.all(
+        formValues.areas.map(async (area) => {
+          const photoUrls = await Promise.all(
+            area.photos.map(async (p) => {
+              if (p.file) {
+                const formData = new FormData();
+                formData.append('photos', p.file);
+                const res = await fetch('http://localhost:3001/api/uploads/upload', {
+                  method: 'POST',
+                  body: formData,
+                });
+                if (!res.ok) throw new Error('Photo upload failed');
+                const result = await res.json();
+                return result.photo_urls[0];
+              }
+              return p.preview || '';
+            })
+          );
+
+          return {
+            area_name: area.areaName,
+            height: parseFloat(area.height),
+            width: parseFloat(area.width),
+            notes: area.notes || '',
+            photo_urls: photoUrls,
+          };
+        })
       );
-      if (!isAlreadySaved) {
-        currentMasterUsers.push(formValues.selectedUser);
-        sessionStorage.setItem('masteruser', JSON.stringify(currentMasterUsers));
-      }
+
+      const payload = {
+        customer_name: formValues.name,
+        customer_mobile: formValues.mobile,
+        customer_address: formValues.address,
+        measurement_date: formValues.measurementDate,
+        user_id: formValues.selectedUser?.user_id,
+        areas: areasWithUploadedPhotos,
+      };
+
+      const method = existingData ? 'PUT' : 'POST';
+      const url = existingData
+        ? `http://localhost:3001/api/measurements/${formValues.id}`
+        : 'http://localhost:3001/api/measurements';
+
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) throw new Error('Failed to save measurement');
+
+      sessionStorage.removeItem('userFormDraft');
+      navigate('/user');
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      alert('Failed to save measurement. Please check console.');
     }
-
-    const existingList = JSON.parse(sessionStorage.getItem('userForms') || '[]');
-    const index = existingList.findIndex((item) => item.id === formValues.id);
-
-    const saveData = {
-      ...formValues,
-      areas: formValues.areas.map((area) => ({
-        ...area,
-        photos: area.photos.map((p) => ({ preview: p.preview })),
-      })),
-    };
-
-    if (index !== -1) {
-      existingList[index] = saveData;
-    } else {
-      existingList.push(saveData);
-    }
-
-    sessionStorage.setItem('userForms', JSON.stringify(existingList));
-    sessionStorage.removeItem('userFormDraft');
-    navigate('/user');
   };
+
+
 
   const openCamera = async (index) => {
     setCameraIndex(index);
@@ -303,7 +373,7 @@ export default function UserFormPage() {
     closeCamera();
   };
 
-    return (
+  return (
     <Container maxWidth="xl">
       <Typography variant="h4" mb={3}>
         {existingData ? 'Edit Measurement' : 'Add New Measurement'}
@@ -351,31 +421,21 @@ export default function UserFormPage() {
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
           <Autocomplete
             options={userOptions}
-            getOptionLabel={(option) => `${option.firstName} ${option.lastName} - ${option.phone}`}
+            getOptionLabel={(option) =>
+              option?.first_name && option?.last_name
+                ? `${option.first_name} ${option.last_name} - ${option.phone}`
+                : ''
+            }
+            isOptionEqualToValue={(option, value) => option.user_id === value.user_id}
             value={formValues.selectedUser}
             onChange={(event, newValue) => {
               setFormValues({ ...formValues, selectedUser: newValue });
             }}
             renderInput={(params) => (
-              <TextField
-                {...params}
-                label="User"
-                placeholder="Search by name or phone"
-              />
+              <TextField {...params} label="User" placeholder="Search by name or phone" />
             )}
             fullWidth
           />
-
-          {/* <TextField
-              label="Measurement Date"
-              type="date"
-              value={formValues.measurementDate}
-              onChange={(e) =>
-                setFormValues({ ...formValues, measurementDate: e.target.value })
-              }
-              InputLabelProps={{ shrink: true }}
-              fullWidth
-            /> */}
 
           <LocalizationProvider dateAdapter={AdapterDayjs}>
             <DatePicker
