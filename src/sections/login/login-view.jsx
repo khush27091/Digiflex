@@ -11,6 +11,7 @@ import IconButton from '@mui/material/IconButton';
 import LoadingButton from '@mui/lab/LoadingButton';
 import { alpha, useTheme } from '@mui/material/styles';
 import InputAdornment from '@mui/material/InputAdornment';
+import { Dialog, DialogTitle , DialogContent, DialogActions } from '@mui/material';
 
 import { useRouter } from 'src/routes/hooks';
 
@@ -28,6 +29,13 @@ export default function LoginView() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [openForgotDialog, setOpenForgotDialog] = useState(false);
+const [currentPwd, setCurrentPwd] = useState('');
+const [newPwd, setNewPwd] = useState('');
+const [forgotPwdError, setForgotPwdError] = useState('');
+const [forgotLoading, setForgotLoading] = useState(false);
+const [showCurrentPwd, setShowCurrentPwd] = useState(false);
+const [showNewPwd, setShowNewPwd] = useState(false);
 
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
@@ -127,7 +135,7 @@ const handleClick = () => {
 
   const renderForm = (
     <>
-      <Stack spacing={3}>
+      <Stack spacing={2}>
        <TextField
   name="email"
   label="Email address"
@@ -169,6 +177,9 @@ const handleClick = () => {
     ),
   }}
 />
+
+
+ 
       </Stack>
 
       {error && (
@@ -189,6 +200,29 @@ const handleClick = () => {
       >
         Login
       </LoadingButton>
+ <Box textAlign="right">
+  <Typography
+    variant="body2"
+    sx={{ cursor: 'pointer', color: 'primary.main' }}
+    onClick={() => {
+      if (email.trim()) {
+        setOpenForgotDialog(true);
+        setForgotPwdError('');
+        setCurrentPwd('');
+        setNewPwd('');
+      } else {
+        setForgotPwdError('Please enter your email first.');
+      }
+    }}
+  >
+    Reset password
+  </Typography>
+  {forgotPwdError && (
+    <Typography variant="caption" color="error">
+      {forgotPwdError}
+    </Typography>
+  )}
+</Box>
     </>
   );
 
@@ -233,6 +267,90 @@ const handleClick = () => {
           {renderForm}
         </Card>
       </Stack>
+
+      <Dialog open={openForgotDialog} onClose={() => setOpenForgotDialog(false)}>
+  <DialogTitle>Reset Password</DialogTitle>
+  <DialogContent dividers sx={{ pt: 2, px: 3 }}>
+    <Stack spacing={2}>
+<TextField
+  fullWidth
+  label="Current Password"
+  type={showCurrentPwd ? 'text' : 'password'}
+  value={currentPwd}
+  onChange={(e) => setCurrentPwd(e.target.value)}
+  InputProps={{
+    endAdornment: (
+      <InputAdornment position="end">
+        <IconButton onClick={() => setShowCurrentPwd(!showCurrentPwd)} edge="end">
+          <Iconify icon={showCurrentPwd ? 'eva:eye-fill' : 'eva:eye-off-fill'} />
+        </IconButton>
+      </InputAdornment>
+    ),
+  }}
+/>
+
+<TextField
+  fullWidth
+  label="New Password"
+  type={showNewPwd ? 'text' : 'password'}
+  value={newPwd}
+  onChange={(e) => setNewPwd(e.target.value)}
+  InputProps={{
+    endAdornment: (
+      <InputAdornment position="end">
+        <IconButton onClick={() => setShowNewPwd(!showNewPwd)} edge="end">
+          <Iconify icon={showNewPwd ? 'eva:eye-fill' : 'eva:eye-off-fill'} />
+        </IconButton>
+      </InputAdornment>
+    ),
+  }}
+/>
+
+    </Stack>
+  </DialogContent>
+  <DialogActions sx={{ px: 3, pb: 2 }}>
+    <LoadingButton
+      loading={forgotLoading}
+      variant="contained"
+      onClick={async () => {
+        if (!currentPwd || !newPwd) {
+          setForgotPwdError('Please fill both fields');
+          return;
+        }
+
+        setForgotPwdError('');
+        setForgotLoading(true);
+
+        try {
+          const res = await fetch('http://localhost:3001/api/users/reset-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, oldPassword: currentPwd, newPassword: newPwd }),
+          });
+
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || 'Password reset failed');
+
+          setOpenForgotDialog(false);
+        } catch (err) {
+          setForgotPwdError(err.message);
+        } finally {
+          setForgotLoading(false);
+        }
+      }}
+    >
+      Submit
+    </LoadingButton>
+  </DialogActions>
+
+  {forgotPwdError && (
+    <Box px={3} pb={2}>
+      <Alert severity="error">{forgotPwdError}</Alert>
     </Box>
+  )}
+</Dialog>
+    </Box>
+
+    
   );
 }

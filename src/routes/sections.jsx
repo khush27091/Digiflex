@@ -16,45 +16,110 @@ export const MeasurementAddPage = lazy(() => import('src/sections/Measurement/me
 
 // ----------------------------------------------------------------------
 
+// export default function Router() {
+//   const routes = useRoutes([
+//     {
+//   element: (
+//     <DashboardLayout>
+//       <Suspense>
+//         <AuthGuard>
+//           <Outlet />
+//         </AuthGuard>
+//       </Suspense>
+//     </DashboardLayout>
+//   ),
+//   children: [
+//     { element: <IndexPage />, index: true },
+//     {
+//       path: 'user',
+//       children: [
+//         { element: <MeasurementPage />, index: true },
+//         { path: 'new', element: <MeasurementAddPage /> },  // ✅ Now this is /user/new
+//       ],
+//     },
+//     {
+//       path: 'products',
+//       children: [
+//         { element: <UserPage />, index: true },
+//       ],
+//     },
+//   ],
+// },
+//     {
+//   path: '/login',
+//   element: (
+//     <GuestGuard>
+//       <LoginPage />
+//     </GuestGuard>
+//   ),
+// },
+//     {
+//       path: '404',
+//       element: <Page404 />,
+//     },
+//     {
+//       path: '*',
+//       element: <Navigate to="/404" replace />,
+//     },
+//   ]);
+
+//   return routes;
+// }
 export default function Router() {
   const routes = useRoutes([
+    // ✅ Redirect root to login if unauthenticated
     {
-  element: (
-    <DashboardLayout>
-      <Suspense>
-        <AuthGuard>
-          <Outlet />
-        </AuthGuard>
-      </Suspense>
-    </DashboardLayout>
-  ),
-  children: [
-    { element: <IndexPage />, index: true },
+      path: '/',
+      element: (
+        sessionStorage.getItem('accessToken') ? (
+          <Navigate to="/dashboard" replace />
+        ) : (
+          <Navigate to="/login" replace />
+        )
+      ),
+    },
+
+    // ✅ Protected Dashboard Routes
     {
-      path: 'user',
+      path: '/dashboard',
+      element: (
+        <DashboardLayout>
+          <Suspense>
+            <AuthGuard>
+              <Outlet />
+            </AuthGuard>
+          </Suspense>
+        </DashboardLayout>
+      ),
       children: [
-        { element: <MeasurementPage />, index: true },
-        { path: 'new', element: <MeasurementAddPage /> },  // ✅ Now this is /user/new
+        { element: <IndexPage />, index: true }, // /dashboard
+        {
+          path: 'user',
+          children: [
+            { element: <MeasurementPage />, index: true },       // /dashboard/user
+            { path: 'new', element: <MeasurementAddPage /> },    // /dashboard/user/new
+          ],
+        },
+        {
+          path: 'products',
+          children: [{ element: <UserPage />, index: true }],    // /dashboard/products
+        },
       ],
     },
+
+    // ✅ Public Login Route
     {
-      path: 'products',
-      children: [
-        { element: <UserPage />, index: true },
-      ],
+      path: '/login',
+      element: (
+        <GuestGuard>
+          <LoginPage />
+        </GuestGuard>
+      ),
     },
-  ],
-},
+
+    // ✅ 404 Handling
     {
-  path: '/login',
-  element: (
-    <GuestGuard>
-      <LoginPage />
-    </GuestGuard>
-  ),
-},
-    {
-      path: '404',
+      path: '/404',
       element: <Page404 />,
     },
     {
@@ -63,5 +128,5 @@ export default function Router() {
     },
   ]);
 
-  return routes;
+  return routes;  
 }
