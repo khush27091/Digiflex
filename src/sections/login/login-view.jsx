@@ -44,41 +44,86 @@ export default function LoginView() {
 
   const validatePassword = (value) => {
     if (!value) return 'Password is required';
-    if (value.length < 6) return 'Password must be at least 6 characters';
     return '';
   };
 
-  const handleClick = () => {
-    const emailErr = validateEmail(email);
-    const passwordErr = validatePassword(password);
+  // const handleClick = () => {
+  //   const emailErr = validateEmail(email);
+  //   const passwordErr = validatePassword(password);
 
-    setEmailError(emailErr);
-    setPasswordError(passwordErr);
+  //   setEmailError(emailErr);
+  //   setPasswordError(passwordErr);
 
-    if (emailErr || passwordErr) {
-      return; // Don’t continue if validation fails
-    }
+  //   if (emailErr || passwordErr) {
+  //     return; // Don’t continue if validation fails
+  //   }
 
-    setLoading(true);
-    setError('');
+  //   setLoading(true);
+  //   setError('');
 
-    // Simulated static login credentials
-    const validEmail = 'admin@demo.com';
-    const validPassword = 'admin123';
+  //   // Simulated static login credentials
+  //   const validEmail = 'admin@demo.com';
+  //   const validPassword = 'admin123';
 
-    setTimeout(() => {
-      if (email === validEmail && password === validPassword) {
-        // Simulate token storage
-        sessionStorage.setItem('accessToken', 'fake_token_123');
+  //   setTimeout(() => {
+  //     if (email === validEmail && password === validPassword) {
+  //       // Simulate token storage
+  //       sessionStorage.setItem('accessToken', 'fake_token_123');
 
-        // Redirect to dashboard
-        router.push('/');
-      } else {
-        setError('Invalid email or password');
-        setLoading(false);
+  //       // Redirect to dashboard
+  //       router.push('/');
+  //     } else {
+  //       setError('Invalid email or password');
+  //       setLoading(false);
+  //     }
+  //   }, 1000); // Simulate network delay
+  // };
+const handleClick = () => {
+  const emailErr = validateEmail(email);
+  const passwordErr = validatePassword(password);
+
+  setEmailError(emailErr);
+  setPasswordError(passwordErr);
+
+  if (emailErr || passwordErr) {
+    return; // Don’t continue if validation fails
+  }
+
+  setLoading(true);
+  setError('');
+
+  const loginToBackend = async () => {
+    try {
+      const response = await fetch('http://localhost:3001/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Login failed');
       }
-    }, 1000); // Simulate network delay
+
+      const user = await response.json();
+
+      // Store token/user data in sessionStorage
+      sessionStorage.setItem('accessToken', user.token || 'dummy_token');
+      sessionStorage.setItem('user', JSON.stringify(user));
+      
+      router.push('/');
+      window.location.reload();
+    } catch (err) {
+      setError(err.message);
+      setLoading(false);
+    }
   };
+
+  loginToBackend();
+};
+
 
   const renderForm = (
     <>

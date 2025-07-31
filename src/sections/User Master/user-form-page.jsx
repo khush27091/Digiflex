@@ -34,7 +34,6 @@ export default function UserFormDialog({ open, onClose, existingData, onSaved })
         email: existingData.email || '',
         phone: existingData.phone || '',
         role: existingData.role || 'normal',
-        password: '', // Do not prefill password
       });
     } else {
       setFormValues({
@@ -42,7 +41,6 @@ export default function UserFormDialog({ open, onClose, existingData, onSaved })
         lastName: '',
         email: '',
         phone: '',
-        password: '',
         role: 'normal',
       });
     }
@@ -69,42 +67,56 @@ export default function UserFormDialog({ open, onClose, existingData, onSaved })
     return isValid;
   };
 
-  const handleSubmit = async () => {
-    if (!validateForm()) return;
+const handleSubmit = async () => {
+  if (!validateForm()) return;
 
-    try {
-      const payload = {
-        first_name: formValues.firstName,
-        last_name: formValues.lastName,
-        email: formValues.email,
-        phone: formValues.phone,
-        role: formValues.role,
-      };
+  try {
+    const payload = {
+      first_name: formValues.firstName,
+      last_name: formValues.lastName,
+      email: formValues.email,
+      phone: formValues.phone,
+      role: formValues.role,
+    };
 
-      if (!isEdit) {
-        payload.password_hash = formValues.password || 'static@123'; // static fallback
-        const response = await fetch('/api/users', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
-        if (!response.ok) throw new Error('Failed to create user');
-      } else {
-        const response = await fetch(`/api/users/${existingData.user_id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
-        if (!response.ok) throw new Error('Failed to update user');
-      }
-
-      if (onSaved) onSaved();
-      onClose();
-    } catch (err) {
-      console.error(err);
-      alert('Error saving user. Please check console.');
+    if (!isEdit) {
+      payload.password_hash = 'static@123'; // default password
+      const response = await fetch('/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!response.ok) throw new Error('Failed to create user');
+    } else {
+      const response = await fetch(`/api/users/${existingData.user_id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!response.ok) throw new Error('Failed to update user');
     }
-  };
+
+    // Reset form on submit
+    if (!isEdit) {
+      setFormValues({
+        firstName: '',
+        lastName: '',
+        email: '',
+        phone: '',
+        password: '',
+        role: 'normal',
+      });
+      setErrors({ firstName: '', lastName: '', phone: '' });
+    }
+
+    if (onSaved) onSaved();
+    onClose();
+  } catch (err) {
+    console.error(err);
+    alert('Error saving user. Please check console.');
+  }
+};
+
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
@@ -141,15 +153,6 @@ export default function UserFormDialog({ open, onClose, existingData, onSaved })
             error={!!errors.phone}
             helperText={errors.phone}
           />
-          {!isEdit && (
-            <TextField
-              label="Password"
-              type="password"
-              value={formValues.password}
-              onChange={(e) => setFormValues({ ...formValues, password: e.target.value })}
-              fullWidth
-            />
-          )}
           <TextField
             select
             label="Role"

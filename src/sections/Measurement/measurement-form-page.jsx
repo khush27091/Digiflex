@@ -41,7 +41,6 @@ export default function UserFormPage() {
 
   const today = dayjs().format('YYYY-MM-DD');
   const [formValues, setFormValues] = useState({
-    id: Date.now(),
     name: '',
     mobile: '',
     address: '',
@@ -308,10 +307,10 @@ export default function UserFormPage() {
         areas: areasWithUploadedPhotos,
       };
 
-      const method = existingData ? 'PUT' : 'POST';
-      const url = existingData
-        ? `http://localhost:3001/api/measurements/${formValues.id}`
-        : 'http://localhost:3001/api/measurements';
+const method = measurementId ? 'PUT' : 'POST';
+const url = measurementId
+  ? `http://localhost:3001/api/measurements/${measurementId}`
+  : 'http://localhost:3001/api/measurements';
 
       const response = await fetch(url, {
         method,
