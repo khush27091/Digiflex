@@ -129,12 +129,12 @@ export default function UserCard({ row, handleDelete }) {
             WhatsApp
           </MenuItem>
         )}
-
+  
 
 
         <MenuItem
           onClick={() => {
-            navigate('/user/new', {
+            navigate('/dashboard/user/new', {
               state: { formData: row },
             });
             handleCloseMenu();

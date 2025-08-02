@@ -27,7 +27,7 @@ export default function UserFormPage() {
   const measurementId = location.state?.id;
   useEffect(() => {
     if (measurementId) {
-      fetch(`http://localhost:3001/api/measurements/${measurementId}`)
+      fetch(`https://digiflex-backend.up.railway.app/api/measurements/${measurementId}`)
         .then((res) => res.json())
         .then((data) => {
           setExistingData(data);
@@ -70,7 +70,7 @@ export default function UserFormPage() {
           width: area.width?.toString?.() || '',
           notes: area.notes || '',
           photos: (area.photo_urls || []).map((url) => ({
-            preview: url.startsWith('http') ? url : `http://localhost:3001${url}`,
+            preview: url.startsWith('http') ? url : `https://digiflex-backend.up.railway.app/${url}`,
             file: null,
           })),
         })),
@@ -84,7 +84,7 @@ export default function UserFormPage() {
     const fetchSelectedUser = async () => {
       if (existingData?.user_id) {
         try {
-          const res = await fetch(`http://localhost:3001/api/users/${existingData.user_id}`);
+          const res = await fetch(`https://digiflex-backend.up.railway.app/api/users/${existingData.user_id}`);
           if (!res.ok) throw new Error('Failed to fetch selected user');
           const userData = await res.json();
           setFormValues(prev => ({
@@ -120,7 +120,7 @@ export default function UserFormPage() {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await fetch('http://localhost:3001/api/users');
+        const response = await fetch('https://digiflex-backend.up.railway.app/api/users');
         if (!response.ok) throw new Error('Failed to fetch users');
         const data = await response.json();
         setUserOptions(data);
@@ -276,7 +276,7 @@ export default function UserFormPage() {
               if (p.file) {
                 const formData = new FormData();
                 formData.append('photos', p.file);
-                const res = await fetch('http://localhost:3001/api/uploads/upload', {
+                const res = await fetch('https://digiflex-backend.up.railway.app/api/uploads/upload', {
                   method: 'POST',
                   body: formData,
                 });
@@ -309,8 +309,8 @@ export default function UserFormPage() {
 
 const method = measurementId ? 'PUT' : 'POST';
 const url = measurementId
-  ? `http://localhost:3001/api/measurements/${measurementId}`
-  : 'http://localhost:3001/api/measurements';
+  ? `https://digiflex-backend.up.railway.app/api/measurements/${measurementId}`
+  : 'https://digiflex-backend.up.railway.app/api/measurements';
 
       const response = await fetch(url, {
         method,
@@ -321,7 +321,7 @@ const url = measurementId
       if (!response.ok) throw new Error('Failed to save measurement');
 
       sessionStorage.removeItem('userFormDraft');
-      navigate('/user');
+      navigate('/dashboard/user');
     } catch (error) {
       console.error('Error submitting form:', error);
       alert('Failed to save measurement. Please check console.');
@@ -604,7 +604,7 @@ const url = measurementId
         </Button>
 
         <Stack direction="row" spacing={2} justifyContent="flex-end">
-          <Button variant="outlined" onClick={() => navigate('/user')}>
+          <Button variant="outlined" onClick={() => navigate('/dashboard/user')}>
             Cancel
           </Button>
           <Button variant="contained" onClick={handleSubmit}>

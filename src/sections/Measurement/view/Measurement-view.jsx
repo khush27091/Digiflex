@@ -49,7 +49,7 @@ export default function UserPage() {
 
   const fetchMeasurements = async () => {
     try {
-      const res = await fetch('http://localhost:3001/api/measurements');
+      const res = await fetch('https://digiflex-backend.up.railway.app/api/measurements');
       const json = await res.json();
       setData(json);
     } catch (err) {
@@ -59,7 +59,7 @@ export default function UserPage() {
 
   const handleDelete = async (id) => {
     try {
-      const res = await fetch(`http://localhost:3001/api/measurements/${id}`, {
+      const res = await fetch(`https://digiflex-backend.up.railway.app/api/measurements/${id}`, {
         method: 'DELETE',
       });
       if (!res.ok) throw new Error('Failed to delete');
@@ -100,7 +100,7 @@ export default function UserPage() {
             variant="contained"
             color="inherit"
             startIcon={<Iconify icon="eva:plus-fill" />}
-            onClick={() => navigate('/user/new')}
+            onClick={() => navigate('/dashboard/user/new')}
           >
             New Measurement
           </Button>
@@ -203,7 +203,7 @@ export default function UserPage() {
             variant="contained"
             color="inherit"
             startIcon={<Iconify icon="eva:plus-fill" />}
-            onClick={() => navigate('/user/new')}
+            onClick={() => navigate('/dashboard/user/new')}
           >
             New Measurement
           </Button>

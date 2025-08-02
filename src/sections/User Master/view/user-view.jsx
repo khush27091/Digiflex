@@ -47,7 +47,7 @@ export default function UserPage() {
 
   const fetchUsers = async () => {
     try {
-      const res = await fetch('/api/users');
+      const res = await fetch('https://digiflex-backend.up.railway.app/api/users');
       const data = await res.json();
       setUsers(data);
     } catch (error) {
@@ -66,7 +66,7 @@ export default function UserPage() {
 
   const handleDelete = async (id) => {
     try {
-      await fetch(`/api/users/${id}`, {
+      await fetch(`https://digiflex-backend.up.railway.app/api/users/${id}`, {
         method: 'DELETE',
       });
       fetchUsers(); // Refresh list

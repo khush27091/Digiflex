@@ -102,7 +102,7 @@ const handleClick = () => {
 
   const loginToBackend = async () => {
     try {
-      const response = await fetch('http://localhost:3001/api/auth/login', {
+      const response = await fetch('https://digiflex-backend.up.railway.app/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -322,7 +322,7 @@ const handleClick = () => {
         setForgotLoading(true);
 
         try {
-          const res = await fetch('http://localhost:3001/api/users/reset-password', {
+          const res = await fetch('https://digiflex-backend.up.railway.app/api/users/reset-password', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, oldPassword: currentPwd, newPassword: newPwd }),

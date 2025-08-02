@@ -57,7 +57,7 @@ export default function UserTableRow({
   const fetchUserDetails = async () => {
     if (row.user_id) {
       try {
-        const response = await fetch(`http://localhost:3001/api/users/${row.user_id}`);
+        const response = await fetch(`https://digiflex-backend.up.railway.app/api/users/${row.user_id}`);
         if (!response.ok) throw new Error('Failed to fetch user');
         const data = await response.json();
         setUserDetails(data);
@@ -144,7 +144,7 @@ if (userDetails?.phone) {
 
         <MenuItem
           onClick={() =>
-            navigate('/user/new', {
+            navigate('/dashboard/user/new', {
               state: { id: row.id }, // ✅ pass full row
             })
           }
