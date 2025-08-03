@@ -1,11 +1,12 @@
 import dayjs from 'dayjs';
-import { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import {
   Box,
   Card,
+  Chip,
   Stack,
   Button,
   Dialog,
@@ -17,7 +18,6 @@ import {
   DialogContent,
   DialogActions,
   DialogContentText,
-  Chip,
 } from '@mui/material';
 
 import Iconify from 'src/components/iconify';
@@ -27,6 +27,10 @@ export default function UserCard({ row, handleDelete }) {
   const [openDialog, setOpenDialog] = useState(false);
   const [openSaveDialog, setOpenSaveDialog] = useState(false);
   const [userDetails, setUserDetails] = useState(null);
+  const currentUser = JSON.parse(sessionStorage.getItem('user') || '{}');
+  const isNormalUser = currentUser.role === 'normal';
+  const isApproved = row.status === 'approved';
+  const canShowRestrictedActions = !isNormalUser && !isApproved;
 
   const navigate = useNavigate();
 
@@ -46,7 +50,7 @@ export default function UserCard({ row, handleDelete }) {
     setOpenDialog(false);
   };
 
-    const handleOpenSaveDialog = () => {
+  const handleOpenSaveDialog = () => {
     setOpenSaveDialog(true);
   };
 
@@ -84,40 +88,39 @@ export default function UserCard({ row, handleDelete }) {
 
   let whatsappLink = '';
 
-if (userDetails?.phone) {
-  const phone = '91' + userDetails.phone.replace(/[^\d]/g, '');
-  const message = `Hello ${userDetails.first_name} ${userDetails.last_name},\n\n` +
-    `Here are your measurement appointment details:\n` +
-    `👤 Name: ${row.customer_name}\n` +
-    `📞 Phone: ${row.customer_mobile}\n` +
-    `🏠 Address: ${row.customer_address || 'N/A'}\n` +
-    `📅 Date: ${
-      row.measurement_date
+  if (userDetails?.phone) {
+    const phone = '91' + userDetails.phone.replace(/[^\d]/g, '');
+    const message = `Hello ${userDetails.first_name} ${userDetails.last_name},\n\n` +
+      `Here are your measurement appointment details:\n` +
+      `👤 Name: ${row.customer_name}\n` +
+      `📞 Phone: ${row.customer_mobile}\n` +
+      `🏠 Address: ${row.customer_address || 'N/A'}\n` +
+      `📅 Date: ${row.measurement_date
         ? dayjs(row.measurement_date).format('DD/MM/YYYY')
         : 'N/A'
-    }`;
-  whatsappLink = `${baseURL}?phone=${phone}&text=${encodeURIComponent(message)}`;
-}
+      }`;
+    whatsappLink = `${baseURL}?phone=${phone}&text=${encodeURIComponent(message)}`;
+  }
 
   const handleApprove = async () => {
-  try {
-    const response = await fetch(`https://digiflex-backend.up.railway.app/api/measurements/${row.id}/approve`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-    });
+    try {
+      const response = await fetch(`https://digiflex-backend.up.railway.app/api/measurements/${row.id}/approve`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+      });
 
-    if (!response.ok) throw new Error('Failed to approve measurement');
+      if (!response.ok) throw new Error('Failed to approve measurement');
 
-    const data = await response.json();
-    console.log('Measurement approved:', data);
+      const data = await response.json();
+      console.log('Measurement approved:', data);
 
-    // Optional: refresh UI or notify user
-    window.location.reload(); // or refetch data via parent component
-  } catch (error) {
-    console.error('Error approving measurement:', error);
-    alert('Failed to approve measurement');
-  }
-};
+      // Optional: refresh UI or notify user
+      window.location.reload(); // or refetch data via parent component
+    } catch (error) {
+      console.error('Error approving measurement:', error);
+      alert('Failed to approve measurement');
+    }
+  };
 
 
   return (
@@ -180,7 +183,7 @@ if (userDetails?.phone) {
         }}
       >
 
-        {whatsappLink && (
+        {canShowRestrictedActions  && whatsappLink && (
           <MenuItem
             component="a"
             href={whatsappLink}
@@ -192,7 +195,7 @@ if (userDetails?.phone) {
           </MenuItem>
         )}
 
-        {row.status === 'in_progress' &&<MenuItem
+        {canShowRestrictedActions  && row.status === 'in_progress' && <MenuItem
           onClick={handleOpenSaveDialog}
           sx={{ color: 'success.main' }}
         >
@@ -212,10 +215,10 @@ if (userDetails?.phone) {
           Edit
         </MenuItem>
 
-        <MenuItem onClick={handleOpenDialog} sx={{ color: 'error.main' }}>
+        {canShowRestrictedActions  && <MenuItem onClick={handleOpenDialog} sx={{ color: 'error.main' }}>
           <Iconify icon="eva:trash-2-outline" sx={{ mr: 2 }} />
           Delete
-        </MenuItem>
+        </MenuItem>}
       </Popover>
 
       <Dialog open={openDialog} onClose={handleCloseDialog}>
@@ -233,28 +236,28 @@ if (userDetails?.phone) {
         </DialogActions>
       </Dialog>
 
-            <Dialog
-              open={openSaveDialog}
-              onClose={handleCloseSaveDialog}
-            >
-              <DialogTitle>Save Measurement</DialogTitle>
-              <DialogContent>
-                <DialogContentText>
-                  Are you sure you want to Save ?
-                  This action cannot be undone.
-                </DialogContentText>
-              </DialogContent>
-              <DialogActions>
-                <Button onClick={handleCloseSaveDialog}>Cancel</Button>
-                <Button
-                  onClick={handleApprove}
-                  color="success"
-                  variant="contained"
-                >
-                  Save
-                </Button>
-              </DialogActions>
-            </Dialog>
+      <Dialog
+        open={openSaveDialog}
+        onClose={handleCloseSaveDialog}
+      >
+        <DialogTitle>Save Measurement</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to Save ?
+            This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseSaveDialog}>Cancel</Button>
+          <Button
+            onClick={handleApprove}
+            color="success"
+            variant="contained"
+          >
+            Save
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 }

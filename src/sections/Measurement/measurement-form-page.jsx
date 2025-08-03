@@ -25,6 +25,10 @@ export default function UserFormPage() {
   const location = useLocation();
   const [existingData, setExistingData] = useState([]);
   const measurementId = location.state?.id;
+  const currentUser = JSON.parse(sessionStorage.getItem('user') || '{}');
+const isNormalUser = currentUser.role === 'normal';
+
+  
   useEffect(() => {
     if (measurementId) {
       fetch(`https://digiflex-backend.up.railway.app/api/measurements/${measurementId}`)
@@ -384,6 +388,7 @@ const url = measurementId
           <TextField
             label="Customer Name"
             value={formValues.name}
+            
             onChange={(e) => {
               setFormValues({ ...formValues, name: e.target.value });
               if (errors.name) setErrors({ ...errors, name: '' });
@@ -391,6 +396,7 @@ const url = measurementId
             fullWidth
             error={!!errors.name}
             helperText={errors.name}
+            disabled={isNormalUser}
           />
 
           <TextField
@@ -403,6 +409,7 @@ const url = measurementId
             fullWidth
             error={!!errors.mobile}
             helperText={errors.mobile}
+            disabled={isNormalUser}
           />
         </Stack>
 
@@ -416,6 +423,7 @@ const url = measurementId
           fullWidth
           error={!!errors.address}
           helperText={errors.address}
+           disabled={isNormalUser}
         />
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
           <Autocomplete
@@ -434,6 +442,7 @@ const url = measurementId
               <TextField {...params} label="User" placeholder="Search by name or phone" />
             )}
             fullWidth
+             disabled={isNormalUser}
           />
 
           <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -446,6 +455,7 @@ const url = measurementId
               slotProps={{
                 textField: {
                   fullWidth: true,
+                  disabled: isNormalUser,
                 },
               }}
 
