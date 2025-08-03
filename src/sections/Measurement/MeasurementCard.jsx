@@ -1,5 +1,5 @@
 import dayjs from 'dayjs';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
 
@@ -17,6 +17,7 @@ import {
   DialogContent,
   DialogActions,
   DialogContentText,
+  Chip,
 } from '@mui/material';
 
 import Iconify from 'src/components/iconify';
@@ -24,6 +25,8 @@ import Iconify from 'src/components/iconify';
 export default function UserCard({ row, handleDelete }) {
   const [openMenu, setOpenMenu] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
+  const [openSaveDialog, setOpenSaveDialog] = useState(false);
+  const [userDetails, setUserDetails] = useState(null);
 
   const navigate = useNavigate();
 
@@ -43,12 +46,36 @@ export default function UserCard({ row, handleDelete }) {
     setOpenDialog(false);
   };
 
+    const handleOpenSaveDialog = () => {
+    setOpenSaveDialog(true);
+  };
+
+  const handleCloseSaveDialog = () => {
+    setOpenSaveDialog(false);
+  };
+
   const onDeleteConfirmed = () => {
     handleDelete(row.id);
     handleCloseDialog();
     handleCloseMenu();
   };
 
+  useEffect(() => {
+    const fetchUserDetails = async () => {
+      if (row.user_id) {
+        try {
+          const response = await fetch(`https://digiflex-backend.up.railway.app/api/users/${row.user_id}`);
+          if (!response.ok) throw new Error('Failed to fetch user');
+          const data = await response.json();
+          setUserDetails(data);
+        } catch (error) {
+          console.error('Error fetching user:', error);
+        }
+      }
+    };
+
+    fetchUserDetails();
+  }, [row.user_id]);
 
   const isMobile = /iPhone|Android|iPad/i.test(navigator.userAgent);
   const baseURL = isMobile
@@ -57,16 +84,40 @@ export default function UserCard({ row, handleDelete }) {
 
   let whatsappLink = '';
 
-  if (row.selectedUser?.phone) {
-    const phone = '91' + row.selectedUser.phone.replace(/[^\d]/g, '');
-    const message = `Hello ${row.selectedUser.firstName} ${row.selectedUser.lastName},\n\n` +
-      `Here are your measurement appointment details:\n` +
-      `👤 Name: ${row.name}\n` +
-      `📞 Phone: ${row.mobile}\n` +
-      `🏠 Address: ${row.address || 'N/A'}\n` +
-      `📅 Date: ${row.measurementDate || 'N/A'}`;
-    whatsappLink = `${baseURL}?phone=${phone}&text=${encodeURIComponent(message)}`;
+if (userDetails?.phone) {
+  const phone = '91' + userDetails.phone.replace(/[^\d]/g, '');
+  const message = `Hello ${userDetails.first_name} ${userDetails.last_name},\n\n` +
+    `Here are your measurement appointment details:\n` +
+    `👤 Name: ${row.customer_name}\n` +
+    `📞 Phone: ${row.customer_mobile}\n` +
+    `🏠 Address: ${row.customer_address || 'N/A'}\n` +
+    `📅 Date: ${
+      row.measurement_date
+        ? dayjs(row.measurement_date).format('DD/MM/YYYY')
+        : 'N/A'
+    }`;
+  whatsappLink = `${baseURL}?phone=${phone}&text=${encodeURIComponent(message)}`;
+}
+
+  const handleApprove = async () => {
+  try {
+    const response = await fetch(`https://digiflex-backend.up.railway.app/api/measurements/${row.id}/approve`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    if (!response.ok) throw new Error('Failed to approve measurement');
+
+    const data = await response.json();
+    console.log('Measurement approved:', data);
+
+    // Optional: refresh UI or notify user
+    window.location.reload(); // or refetch data via parent component
+  } catch (error) {
+    console.error('Error approving measurement:', error);
+    alert('Failed to approve measurement');
   }
+};
 
 
   return (
@@ -83,19 +134,30 @@ export default function UserCard({ row, handleDelete }) {
         <Stack spacing={2}>
           <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
             <Box>
-              <Typography variant="h6">{row.customer_name}</Typography>
+              <Typography variant="h6">{row.customer_name} {row.status === 'created' && (
+                <Chip label="Created" color="default" variant="outlined" />
+              )}
+                {row.status === 'assigned' && (
+                  <Chip label="Assigned" color="warning" variant="outlined" />
+                )}
+                {row.status === 'in_progress' && (
+                  <Chip label="In Progress" color="primary" variant="outlined" />
+                )}
+                {row.status === 'approved' && (
+                  <Chip label="Approved" color="success" variant="outlined" />
+                )}</Typography>
               <Typography variant="body2" color="text.secondary">
                 Measurement Date: {row.measurement_date
-                            ? dayjs(row.measurement_date  , 'YYYY-MM-DD').format('DD/MM/YYYY')
-                            : ''}
+                  ? dayjs(row.measurement_date, 'YYYY-MM-DD').format('DD/MM/YYYY')
+                  : ''}
               </Typography>
               <Typography variant="body2" color="text.secondary">
                 Mobile: {row.customer_mobile}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Assigned User: {row.user_id
-                  ? `${row.user_id} `
-                  : '-'}
+                Assigned User :{userDetails
+                  ? `${userDetails.first_name} ${userDetails.last_name} (${userDetails.phone})`
+                  : 'Loading...'}
               </Typography>
             </Box>
 
@@ -129,8 +191,14 @@ export default function UserCard({ row, handleDelete }) {
             WhatsApp
           </MenuItem>
         )}
-  
 
+        {row.status === 'in_progress' &&<MenuItem
+          onClick={handleOpenSaveDialog}
+          sx={{ color: 'success.main' }}
+        >
+          <Iconify icon="bx:save" sx={{ mr: 2 }} />
+          Save
+        </MenuItem>}
 
         <MenuItem
           onClick={() => {
@@ -164,6 +232,29 @@ export default function UserCard({ row, handleDelete }) {
           </Button>
         </DialogActions>
       </Dialog>
+
+            <Dialog
+              open={openSaveDialog}
+              onClose={handleCloseSaveDialog}
+            >
+              <DialogTitle>Save Measurement</DialogTitle>
+              <DialogContent>
+                <DialogContentText>
+                  Are you sure you want to Save ?
+                  This action cannot be undone.
+                </DialogContentText>
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={handleCloseSaveDialog}>Cancel</Button>
+                <Button
+                  onClick={handleApprove}
+                  color="success"
+                  variant="contained"
+                >
+                  Save
+                </Button>
+              </DialogActions>
+            </Dialog>
     </>
   );
 }
