@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { useState , useEffect} from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import { Chip } from '@mui/material';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import Popover from '@mui/material/Popover';
@@ -26,6 +27,7 @@ export default function UserTableRow({
 }) {
   const [openMenu, setOpenMenu] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
+  const [openSaveDialog, setOpenSaveDialog] = useState(false);
   const [userDetails, setUserDetails] = useState(null);
 
 
@@ -44,7 +46,15 @@ export default function UserTableRow({
   };
 
   const handleCloseDialog = () => {
-    setOpenDialog(false);
+    setOpenSaveDialog(false);
+  };
+
+  const handleOpenSaveDialog = () => {
+    setOpenSaveDialog(true);
+  };
+
+  const handleCloseSaveDialog = () => {
+    setOpenSaveDialog(false);
   };
 
   const onDeleteConfirmed = () => {
@@ -93,6 +103,27 @@ if (userDetails?.phone) {
   whatsappLink = `${baseURL}?phone=${phone}&text=${encodeURIComponent(message)}`;
 }
 
+const handleApprove = async () => {
+  try {
+    const response = await fetch(`https://digiflex-backend.up.railway.app/api/measurements/${row.id}/approve`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    if (!response.ok) throw new Error('Failed to approve measurement');
+
+    const data = await response.json();
+    console.log('Measurement approved:', data);
+
+    // Optional: refresh UI or notify user
+    window.location.reload(); // or refetch data via parent component
+  } catch (error) {
+    console.error('Error approving measurement:', error);
+    alert('Failed to approve measurement');
+  }
+};
+
+
 
   return (
     <>
@@ -108,6 +139,20 @@ if (userDetails?.phone) {
   {userDetails
     ? `${userDetails.first_name} ${userDetails.last_name} (${userDetails.phone})`
     : 'Loading...'}
+</TableCell>
+   <TableCell>
+  {row.status === 'created' && (
+    <Chip label="Created" color="default" variant="outlined" />
+  )}
+  {row.status === 'assigned' && (
+    <Chip label="Assigned" color="warning" variant="outlined" />
+  )}
+  {row.status === 'in_progress' && (
+    <Chip label="In Progress" color="primary" variant="outlined" />
+  )}
+  {row.status === 'approved' && (
+    <Chip label="Approved" color="success" variant="outlined" />
+  )}
 </TableCell>
 
         <TableCell align="right">
@@ -141,6 +186,14 @@ if (userDetails?.phone) {
           </MenuItem>
         )}
 
+
+        {row.status === 'in_progress' &&<MenuItem
+          onClick={handleOpenSaveDialog}
+          sx={{ color: 'success.main' }}
+        >
+          <Iconify icon="bx:save" sx={{ mr: 2 }} />
+          Save
+        </MenuItem>}
 
         <MenuItem
           onClick={() =>
@@ -181,6 +234,30 @@ if (userDetails?.phone) {
             variant="contained"
           >
             Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+
+      <Dialog
+        open={openSaveDialog}
+        onClose={handleCloseSaveDialog}
+      >
+        <DialogTitle>Save Measurement</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to Save ?
+            This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseSaveDialog}>Cancel</Button>
+          <Button
+            onClick={handleApprove}
+            color="success"
+            variant="contained"
+          >
+            Save
           </Button>
         </DialogActions>
       </Dialog>

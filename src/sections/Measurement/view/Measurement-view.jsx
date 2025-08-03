@@ -151,6 +151,7 @@ export default function UserPage() {
                     { id: 'mobile', label: 'Mobile' },
                     { id: 'measurementDate', label: 'Date' },
                     { id: 'user', label: 'Assigned User' },
+                    { id: 'status', label: 'Status' },
                     { id: '' },
                   ]}
                 />
