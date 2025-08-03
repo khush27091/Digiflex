@@ -89,8 +89,6 @@ export default function UserPage() {
     filterEndDate,
   });
 
-  const notFound = !dataFiltered.length && (!!filterName || !!filterStartDate || !!filterEndDate);
-
   return (
     <Container maxWidth="xl">
       <Stack direction="row" justifyContent="space-between" alignItems="center" mb={5}>
@@ -174,8 +172,11 @@ export default function UserPage() {
                         handleDelete={() => handleDelete(row.id)}
                       />
                     ))}
-                  <TableEmptyRows height={77} emptyRows={emptyRows(page, rowsPerPage, rows.length)} />
-                  {notFound && <TableNoData query={filterName} />}
+                  {dataFiltered.length === 0 ? (
+  <TableNoData query={filterName} />
+) : (
+  <TableEmptyRows height={77} emptyRows={emptyRows(page, rowsPerPage, rows.length)} />
+)}
                 </TableBody>
               </Table>
             </TableContainer>
