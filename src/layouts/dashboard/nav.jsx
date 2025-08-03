@@ -196,9 +196,15 @@ Nav.propTypes = {
 // ----------------------------------------------------------------------
 
 function NavItem({ item, isCollapsed }) {
-  const pathname = usePathname();
-  const isRootPath = item.path === '/';
-  const active = isRootPath ? pathname === '/' : pathname.startsWith(item.path);
+  const pathname = usePathname();     // e.g. "/dashboard/user"
+  
+  // Take only what's after `/dashboard/`
+  const currentSection = pathname.split('/')[2] || ''; 
+
+  // Take only what's after `/dashboard/` in item.path
+  const itemSection = item.path.split('/')[2] || '';
+
+  const active = currentSection === itemSection;
 
   const content = (
     <ListItemButton
