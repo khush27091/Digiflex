@@ -55,37 +55,6 @@ const [showNewPwd, setShowNewPwd] = useState(false);
     return '';
   };
 
-  // const handleClick = () => {
-  //   const emailErr = validateEmail(email);
-  //   const passwordErr = validatePassword(password);
-
-  //   setEmailError(emailErr);
-  //   setPasswordError(passwordErr);
-
-  //   if (emailErr || passwordErr) {
-  //     return; // Don’t continue if validation fails
-  //   }
-
-  //   setLoading(true);
-  //   setError('');
-
-  //   // Simulated static login credentials
-  //   const validEmail = 'admin@demo.com';
-  //   const validPassword = 'admin123';
-
-  //   setTimeout(() => {
-  //     if (email === validEmail && password === validPassword) {
-  //       // Simulate token storage
-  //       sessionStorage.setItem('accessToken', 'fake_token_123');
-
-  //       // Redirect to dashboard
-  //       router.push('/');
-  //     } else {
-  //       setError('Invalid email or password');
-  //       setLoading(false);
-  //     }
-  //   }, 1000); // Simulate network delay
-  // };
 const handleClick = () => {
   const emailErr = validateEmail(email);
   const passwordErr = validatePassword(password);
@@ -141,7 +110,7 @@ const handleClick = () => {
   label="Email address"
   value={email}
   onChange={(e) => {
-    setEmail(e.target.value);
+    setEmail(e.target.value.toLowerCase());
     setError(''); // Clear general error on typing
     setEmailError(''); // Optional: Clear field-specific error as well
   }}
