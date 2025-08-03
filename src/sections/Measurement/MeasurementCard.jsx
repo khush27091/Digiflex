@@ -203,17 +203,16 @@ export default function UserCard({ row, handleDelete }) {
           Save
         </MenuItem>}
 
-        <MenuItem
-          onClick={() => {
-            navigate('/dashboard/user/new', {
-              state: { formData: row },
-            });
-            handleCloseMenu();
-          }}
-        >
-          <Iconify icon="eva:edit-fill" sx={{ mr: 2 }} />
-          Edit
-        </MenuItem>
+         <MenuItem
+                 onClick={() =>
+                   navigate('/dashboard/user/new', {
+                     state: { id: row.id }, // ✅ pass full row
+                   })
+                 }
+               >
+                 <Iconify icon= {isApproved ? "raphael:view" : "eva:edit-fill"} sx={{ mr: 2 }} />
+                {isApproved ? 'View' : 'Edit'}
+               </MenuItem>
 
         {canShowRestrictedActions  && <MenuItem onClick={handleOpenDialog} sx={{ color: 'error.main' }}>
           <Iconify icon="eva:trash-2-outline" sx={{ mr: 2 }} />
