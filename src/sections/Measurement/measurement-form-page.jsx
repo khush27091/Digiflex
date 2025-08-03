@@ -122,16 +122,20 @@ const isNormalUser = currentUser.role === 'normal';
 
 
   useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const response = await fetch('https://digiflex-backend.up.railway.app/api/users');
-        if (!response.ok) throw new Error('Failed to fetch users');
-        const data = await response.json();
-        setUserOptions(data);
-      } catch (error) {
-        console.error('Error fetching users:', error);
-      }
-    };
+const fetchUsers = async () => {
+  try {
+    const response = await fetch('https://digiflex-backend.up.railway.app/api/users');
+    if (!response.ok) throw new Error('Failed to fetch users');
+    const data = await response.json();
+    
+    // Only include users with role === 'normal'
+    const filtered = data.filter((user) => user.role === 'normal');
+    
+    setUserOptions(filtered);
+  } catch (error) {
+    console.error('Error fetching users:', error);
+  }
+};
 
     fetchUsers();
   }, []);

@@ -80,15 +80,14 @@ const handleSubmit = async () => {
     };
 
     if (!isEdit) {
-      payload.password_hash = 'static@123'; // default password
-      const response = await fetch('/api/users', {
+      const response = await fetch('https://digiflex-backend.up.railway.app/api/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
       if (!response.ok) throw new Error('Failed to create user');
     } else {
-      const response = await fetch(`/api/users/${existingData.user_id}`, {
+      const response = await fetch(`https://digiflex-backend.up.railway.app/api/users/${existingData.user_id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
