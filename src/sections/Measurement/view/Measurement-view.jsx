@@ -1,5 +1,5 @@
 
-import {useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { useTheme } from '@mui/material/styles';
@@ -42,6 +42,8 @@ export default function UserPage() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const navigate = useNavigate();
+  const user = JSON.parse(sessionStorage.getItem('user') || '{}');
+  const isNormalUser = user.role === 'normal';
 
   useEffect(() => {
     fetchMeasurements();
@@ -70,10 +72,14 @@ export default function UserPage() {
     }
   };
 
-  const rows = data.map((item, index) => ({
-    id: item.id || index + 1,
-    ...item,
-  }));
+  const rows = data
+    .filter((item) =>
+      !isNormalUser || ['assigned', 'in_progress'].includes(item.status)
+    )
+    .map((item, index) => ({
+      id: item.id || index + 1,
+      ...item,
+    }));
 
   const handleSort = (event, id) => {
     const isAsc = orderBy === id && order === 'asc';
@@ -174,10 +180,10 @@ export default function UserPage() {
                       />
                     ))}
                   {dataFiltered.length === 0 ? (
-  <TableNoData query={filterName} />
-) : (
-  <TableEmptyRows height={77} emptyRows={emptyRows(page, rowsPerPage, rows.length)} />
-)}
+                    <TableNoData query={filterName} />
+                  ) : (
+                    <TableEmptyRows height={77} emptyRows={emptyRows(page, rowsPerPage, rows.length)} />
+                  )}
                 </TableBody>
               </Table>
             </TableContainer>
