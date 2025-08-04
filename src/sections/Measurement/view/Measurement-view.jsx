@@ -73,9 +73,6 @@ export default function UserPage() {
   };
 
   const rows = data
-    .filter((item) =>
-      !isNormalUser || ['assigned', 'in_progress'].includes(item.status)
-    )
     .map((item, index) => ({
       id: item.id || index + 1,
       ...item,
@@ -99,7 +96,7 @@ export default function UserPage() {
     <Container maxWidth="xl">
       <Stack direction="row" justifyContent="space-between" alignItems="center" mb={5}>
         <Typography variant="h4">Measurements</Typography>
-        {!isMobile && (
+        { !isNormalUser && !isMobile && (
           <Button
             variant="contained"
             color="inherit"
@@ -204,7 +201,7 @@ export default function UserPage() {
         />
       </Card>
 
-      {isMobile && (
+      {!isNormalUser && isMobile && (
         <Box sx={{ position: 'fixed', bottom: 16, left: 16, right: 16 }}>
           <Button
             fullWidth

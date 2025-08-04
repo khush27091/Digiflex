@@ -27,6 +27,7 @@ export default function UserFormPage() {
   const measurementId = location.state?.id;
   const currentUser = JSON.parse(sessionStorage.getItem('user') || '{}');
 const isNormalUser = currentUser.role === 'normal';
+const isApproved = existingData?.status === 'approved';
 
   
   useEffect(() => {
@@ -400,7 +401,8 @@ const url = measurementId
             fullWidth
             error={!!errors.name}
             helperText={errors.name}
-            disabled={isNormalUser}
+            disabled={isNormalUser || isApproved}
+            
           />
 
           <TextField
@@ -413,7 +415,7 @@ const url = measurementId
             fullWidth
             error={!!errors.mobile}
             helperText={errors.mobile}
-            disabled={isNormalUser}
+            disabled={isNormalUser || isApproved}
           />
         </Stack>
 
@@ -427,7 +429,7 @@ const url = measurementId
           fullWidth
           error={!!errors.address}
           helperText={errors.address}
-           disabled={isNormalUser}
+           disabled={isNormalUser || isApproved}
         />
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
           <Autocomplete
@@ -446,7 +448,7 @@ const url = measurementId
               <TextField {...params} label="User" placeholder="Search by name or phone" />
             )}
             fullWidth
-             disabled={isNormalUser}
+             disabled={isNormalUser || isApproved}
           />
 
           <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -459,7 +461,7 @@ const url = measurementId
               slotProps={{
                 textField: {
                   fullWidth: true,
-                  disabled: isNormalUser,
+                  disabled: isNormalUser || isApproved,
                 },
               }}
 
@@ -483,6 +485,7 @@ const url = measurementId
                 variant="outlined"
                 color="error"
                 onClick={() => handleRemoveRow(index)}
+                disabled={isApproved}
               >
                 Delete
               </Button>
@@ -499,6 +502,7 @@ const url = measurementId
                   fullWidth
                   error={!!errors.areas[index]?.areaName}
                   helperText={errors.areas[index]?.areaName}
+                disabled={isApproved}
                 />
               </Grid>
               <Grid item xs={12} md={4}>
@@ -511,6 +515,7 @@ const url = measurementId
                   fullWidth
                   error={!!errors.areas[index]?.height}
                   helperText={errors.areas[index]?.height}
+                disabled={isApproved}
                 />
               </Grid>
               <Grid item xs={12} md={4}>
@@ -523,12 +528,14 @@ const url = measurementId
                   fullWidth
                   error={!!errors.areas[index]?.width}
                   helperText={errors.areas[index]?.width}
+                disabled={isApproved}
                 />
               </Grid>
 
               <Grid item xs={12}>
                 <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                  <Button variant="outlined" component="label">
+                  <Button variant="outlined" component="label" 
+                disabled={isApproved}>
                     Upload Photos
                     <input
                       hidden
@@ -543,7 +550,8 @@ const url = measurementId
                     />
                   </Button>
 
-                  <Button variant="outlined" onClick={() => openCamera(index)}>
+                  <Button variant="outlined" onClick={() => openCamera(index)} 
+                disabled={isApproved}>
                     Capture Photo
                   </Button>
                 </Stack>
@@ -584,6 +592,7 @@ const url = measurementId
                               backgroundColor: 'rgba(255,255,255,1)',
                             },
                           }}
+                disabled={isApproved}
                         >
                           <Iconify icon="eva:close-fill" />
                         </IconButton>
@@ -603,6 +612,7 @@ const url = measurementId
                   fullWidth
                   multiline
                   rows={2}
+                disabled={isApproved}
                 />
               </Grid>
             </Grid>
@@ -613,6 +623,7 @@ const url = measurementId
           variant="contained"
           onClick={handleAddRow}
           startIcon={<Iconify icon="eva:plus-fill" />}
+                disabled={isApproved}
         >
           Add Row
         </Button>
@@ -621,7 +632,8 @@ const url = measurementId
           <Button variant="outlined" onClick={() => navigate('/dashboard/user')}>
             Cancel
           </Button>
-          <Button variant="contained" onClick={handleSubmit}>
+          <Button variant="contained" onClick={handleSubmit} 
+                disabled={isApproved}>
             Save Measurements
           </Button>
         </Stack>
