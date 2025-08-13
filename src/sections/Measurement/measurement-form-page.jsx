@@ -222,15 +222,25 @@ const fetchUsers = async () => {
     }
   };
 
-  const handleAddPhotos = (index, files) => {
-    const areas = [...formValues.areas];
-    const newPhotos = Array.from(files).map((file) => ({
-      file,
-      preview: URL.createObjectURL(file),
-    }));
-    areas[index].photos = areas[index].photos.concat(newPhotos);
-    setFormValues({ ...formValues, areas });
-  };
+const handleAddPhotos = (index, files) => {
+  const areas = [...formValues.areas];
+  const validPhotos = [];
+
+  Array.from(files).forEach((file) => {
+    if (file.size <= 102400) { // 100 KB in bytes
+      validPhotos.push({
+        file,
+        preview: URL.createObjectURL(file),
+      });
+    } else {
+      alert(`"${file.name}" exceeds 100 KB and will not be uploaded.`);
+    }
+  });
+
+  areas[index].photos = areas[index].photos.concat(validPhotos);
+  setFormValues({ ...formValues, areas });
+};
+
 
   const handleRemovePhoto = (index, photoIdx) => {
     const areas = [...formValues.areas];
@@ -365,21 +375,35 @@ const url = measurementId
     setStream(null);
   };
 
-  const capturePhoto = () => {
-    const video = videoRef.current;
-    const canvas = canvasRef.current;
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+const capturePhoto = () => {
+  const video = videoRef.current;
+  const canvas = canvasRef.current;
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+  const compressAndAdd = (quality) => {
     canvas.toBlob((blob) => {
       if (blob) {
-        const file = new File([blob], 'captured.jpg', { type: 'image/jpeg' });
-        handleAddPhotos(cameraIndex, [file]);
+        if (blob.size <= 102400) {
+          const file = new File([blob], 'captured.jpg', { type: 'image/jpeg' });
+          handleAddPhotos(cameraIndex, [file]);
+          closeCamera();
+        } else if (quality > 0.1) {
+          // keep compressing
+          compressAndAdd(quality - 0.05);
+        } else {
+          alert('Unable to compress photo below 100 KB.');
+          closeCamera();
+        }
       }
-    }, 'image/jpeg');
-    closeCamera();
+    }, 'image/jpeg', quality);
   };
+
+  // start at 0.9 quality, go down if needed
+  compressAndAdd(0.9);
+};
 
   return (
     <Container maxWidth="xl">

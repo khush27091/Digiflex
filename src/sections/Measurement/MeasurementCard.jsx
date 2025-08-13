@@ -81,26 +81,28 @@ export default function UserCard({ row, handleDelete }) {
     fetchUserDetails();
   }, [row.user_id]);
 
-  const isMobile = /iPhone|Android|iPad/i.test(navigator.userAgent);
-  const baseURL = isMobile
-    ? 'https://api.whatsapp.com/send'
-    : 'https://web.whatsapp.com/send';
+const isMobile = /iPhone|Android|iPad/i.test(navigator.userAgent);
+const baseURL = isMobile
+  ? 'https://api.whatsapp.com/send'
+  : 'https://wa.me/send';
 
-  let whatsappLink = '';
+let whatsappLink = '';
 
-  if (userDetails?.phone) {
-    const phone = '91' + userDetails.phone.replace(/[^\d]/g, '');
-    const message = `Hello ${userDetails.first_name} ${userDetails.last_name},\n\n` +
-      `Here are your measurement appointment details:\n` +
-      `👤 Name: ${row.customer_name}\n` +
-      `📞 Phone: ${row.customer_mobile}\n` +
-      `🏠 Address: ${row.customer_address || 'N/A'}\n` +
-      `📅 Date: ${row.measurement_date
-        ? dayjs(row.measurement_date).format('DD/MM/YYYY')
-        : 'N/A'
-      }`;
-    whatsappLink = `${baseURL}?phone=${phone}&text=${encodeURIComponent(message)}`;
-  }
+if (userDetails?.phone) {
+  const phone = '91' + userDetails.phone.replace(/[^\d]/g, '');
+  const message =
+    `Hello ${userDetails.first_name} ${userDetails.last_name},\n\n` +
+    `Here are your measurement appointment details:\n` +
+    `📌 Name: ${row.customer_name}\n` +
+    `📞 Phone: ${row.customer_mobile}\n` +
+    `📍 Address: ${row.customer_address || 'N/A'}\n` +
+    `📅 Date: ${row.measurement_date
+      ? dayjs(row.measurement_date).format('DD/MM/YYYY')
+      : 'N/A'}\n\n` +
+    `🔗 Application Link: https://digiflex-jade.vercel.app/login`;
+
+  whatsappLink = `${baseURL}?phone=${phone}&text=${encodeURIComponent(message)}`;
+}
 
   const handleApprove = async () => {
     try {
